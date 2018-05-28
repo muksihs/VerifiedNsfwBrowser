@@ -1,49 +1,33 @@
 package muksihs.steem.postbrowser.client;
 
-import java.util.List;
-
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
-import com.google.gwt.core.shared.GWT;
 
 import gwt.material.design.client.ui.MaterialLoader;
+import muksihs.steem.postbrowser.shared.NsfwVerifiedList;
 import steem.SteemApi;
-import steem.SteemApi.DiscussionsCallback;
+import steem.SteemApi.UserAccountInfoList;
+import steem.SteemApi.UserAccountInfoListCallback;
 import steem.models.Discussion;
-import steem.models.Discussions;
+import steem.models.UserAccountInfo;
 
 public class App implements ScheduledCommand {
 
 	@Override
 	public void execute() {
-		int[] counter = new int[] {0};
 		MaterialLoader.loading(false);
-		DiscussionsCallback callback = new DiscussionsCallback() {
+		UserAccountInfoListCallback callback=new UserAccountInfoListCallback() {
 			@Override
-			public void onResult(String error, Discussions result) {
-				if (error != null) {
-					GWT.log("=== ERROR:");
-					GWT.log(error);
-				}
-				if (result != null) {
-					GWT.log("=== RESULT:");
-					List<Discussion> list = result.getList();
-					if (list == null) {
-						GWT.log("--- NULL RESULTS");
-						return;
-					}
-					GWT.log(" === ["+(++counter[0])+"]");
-					for (Discussion discussion : list) {
-						GWT.log(discussion.getAuthor() + ": " + discussion.getTitle()+"\n"+discussion.getPermlink());
-					}
-					if (list.size()>1) {
-						Discussion discussion = list.get(list.size()-1);
-						SteemApi.getDiscussionsByCreated("dlive-porn", discussion.getPermlink(), discussion.getAuthor(), 10, this);
-					}
+			public void onResult(String error, UserAccountInfoList result) {
+				for (UserAccountInfo user: result.getList()) {
+					GWT.log(user.getName().getName());
+					GWT.log(" - "+user.getLastRootPost().toString());
 				}
 			}
 		};
-		SteemApi.getDiscussionsByCreated("dlive-porn", 10, callback);
+		NsfwVerifiedList users = BundledData.Data.getNsfwVerifiedList();
+		SteemApi.getAccounts(users.getList(), callback);
 	}
 	public static interface Mapper extends ObjectMapper<Discussion>{}
 

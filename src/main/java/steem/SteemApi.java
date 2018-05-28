@@ -1,6 +1,7 @@
 package steem;
 
 import java.util.HashMap;
+import java.util.List;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
@@ -14,14 +15,13 @@ import elemental2.dom.DomGlobal;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsType;
-import steem.model.accountinfo.AccountInfo;
 import steem.models.Discussion;
 import steem.models.Discussions;
 import steem.models.TrendingTags;
+import steem.models.UserAccountInfo;
 
 @JsType(namespace = "steem", name = "api", isNative = true)
 public class SteemApi {
-	public static native void getAccounts(String[] username, SteemCallbackArray<AccountInfo> callback);
 
 	@JsMethod(name = "getContentReplies")
 	private static native void _getContentReplies(String username, String permlink,
@@ -118,6 +118,7 @@ public class SteemApi {
 			DiscussionsCallback callback) {
 		getDiscussionsByCreated(tag, null, null, limit, callback);
 	}
+
 	@JsOverlay
 	public static void getDiscussionsByCreated(String tag, //
 			String startPermlink, //
@@ -127,17 +128,55 @@ public class SteemApi {
 		JSONObject json = new JSONObject();
 		json.put("tag", new JSONString(tag));
 		json.put("limit", new JSONNumber(limit));
-		if (!(startPermlink==null||startPermlink.trim().isEmpty())) {
+		if (!(startPermlink == null || startPermlink.trim().isEmpty())) {
 			json.put("start_permlink", new JSONString(startPermlink));
 		}
-		if (!(startAuthor==null||startAuthor.trim().isEmpty())) {
+		if (!(startAuthor == null || startAuthor.trim().isEmpty())) {
 			json.put("start_author", new JSONString(startAuthor));
 		}
-		_getDiscussionsByCreated(json.getJavaScriptObject(),
+		_getDiscussionsByCreated(json.getJavaScriptObject(), (error, result) -> callback.onResult(error, result));
+	}
+
+	@JsMethod(name = "getAccounts")
+	private static native void _getAccounts(String[] username, SteemJsCallback callback);
+
+	@JsOverlay
+	public static void getAccounts(List<String> usernames, UserAccountInfoListCallback callback) {
+		_getAccounts(usernames.toArray(new String[usernames.size()]),
 				(error, result) -> callback.onResult(error, result));
 	}
 	
-	public static interface HashMapMapper extends ObjectMapper<HashMap<String, Object>> {}
+	@JsOverlay
+	public static void getAccounts(String[] usernames, UserAccountInfoListCallback callback) {
+		_getAccounts(usernames,
+				(error, result) -> callback.onResult(error, result));
+	}
+
+	public static interface UserAccountInfoListCallback
+			extends SteemTypedListCallback<UserAccountInfoList, UserAccountInfoListMapper> {
+		@Override
+		default UserAccountInfoListMapper mapper() {
+			return GWT.create(UserAccountInfoListMapper.class);
+		}
+	}
+
+	public static interface UserAccountInfoListMapper extends ObjectMapper<UserAccountInfoList> {
+	}
+
+	public static class UserAccountInfoList {
+		private List<UserAccountInfo> list;
+
+		public List<UserAccountInfo> getList() {
+			return list;
+		}
+
+		public void setList(List<UserAccountInfo> list) {
+			this.list = list;
+		}
+	}
+
+	public static interface HashMapMapper extends ObjectMapper<HashMap<String, Object>> {
+	}
 
 	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
 	}
@@ -200,9 +239,11 @@ public class SteemApi {
 
 		public static DiscussionCodec discussionCodec = GWT.create(DiscussionCodec.class);
 
-//		public static interface JsonMetadataCodec extends ObjectMapper<JsonMetadata> {
-//		}
+		// public static interface JsonMetadataCodec extends ObjectMapper<JsonMetadata>
+		// {
+		// }
 
-//		public static JsonMetadataCodec jsonMetadataCodec = GWT.create(JsonMetadataCodec.class);
+		// public static JsonMetadataCodec jsonMetadataCodec =
+		// GWT.create(JsonMetadataCodec.class);
 	}
 }
