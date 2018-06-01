@@ -6,7 +6,7 @@ apply plugin: 'eclipse-wtp'
 apply from: 'https://raw.github.com/gretty-gradle-plugin/gretty/master/pluginScripts/gretty.plugin'
 //apply plugin: 'maven'
 
-version = '20180528'
+version = '20180601'
 group = "muksihs"
 
 sourceCompatibility = 1.8
