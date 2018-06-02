@@ -19,3 +19,4 @@ gradle-app.setting
 /.apt_generated/
 /gwt-unitCache/
 /bin/
+.factorypath
