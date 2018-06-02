@@ -3,6 +3,7 @@ package muksihs.steem.postbrowser.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
+import com.google.gwt.core.client.Scheduler;
 
 import gwt.material.design.client.ui.MaterialLoader;
 
@@ -14,6 +15,7 @@ public class AppEP implements EntryPoint {
 		GWT.log(this.getClass().getSimpleName() + "#onModuleLoad");
 		GWT.setUncaughtExceptionHandler(handler);
 		App app = new AppImpl();
+		Scheduler.get().scheduleDeferred(()->app.run());
 	}
 
 	private UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
