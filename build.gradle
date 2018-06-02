@@ -67,6 +67,8 @@ gwt {
 
 	modules 'muksihs.steem.postbrowser.VerifiedNsfwBrowser'
 	
+	src += files("build/generated/source/apt/main");
+	
 	compiler {
 		ea = false //enable assert statements for testing result conditions
 		strict = true;
@@ -216,18 +218,18 @@ eclipse {
 		sourceCompatibility=1.8
 		targetCompatibility=1.8
 		
-		/*apt {
+		//apt {
 		      // whether annotation processing is enabled in Eclipse
 		      // (isAptEnabled in Kotlin)
-		      aptEnabled = compileJava.aptOptions.annotationProcessing
+		      //aptEnabled = compileJava.aptOptions.annotationProcessing
 		      // where Eclipse will output the generated sources; value is interpreted as per project.file()
-		      genSrcDir = file('.apt_generated')
+		  //    genSrcDir = file('generated-sources/annotations')
 		      // whether annotation processing is enabled in the editor
 		      // (isReconcileEnabled in Kotlin)
-		      reconcileEnabled = true
+		      //reconcileEnabled = true
 		      // a map of annotation processor options; a null value will pass the argument as -Akey rather than -Akey=value
-		      processorOptions = compileJava.aptOptions.processorArgs
-      	}*/
+		      //processorOptions = compileJava.aptOptions.processorArgs
+      	//}
       /*factorypath {
 		    plusConfigurations = [ configurations.apt, configurations.testApt ]
 		    minusConfigurations = []
