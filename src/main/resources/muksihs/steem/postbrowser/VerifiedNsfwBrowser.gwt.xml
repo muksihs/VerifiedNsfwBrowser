@@ -8,7 +8,7 @@
 
 	<!-- System.getProperties() -->
 	<define-configuration-property name="version" is-multi-valued='false'/>
-	<set-configuration-property name="version" value="20180528"/>
+	<set-configuration-property name="version" value="20180601"/>
 
 	<entry-point class='muksihs.steem.postbrowser.client.VerifiedNsfwBrowserEP' />
 
@@ -17,13 +17,16 @@
 	<source path='ui' />
 	
 	<!-- eventbinder -->
-	<inherits name='com.google.web.bindery.event.EventBinder'/>
+<!-- 	<inherits name='com.google.web.bindery.event.EventBinder'/> -->
+	
+	<inherits name='com.github.mvp4g.mvp4g2.Mvp4g2'/>
 	
 	<!-- compression for the cache -->
 	<inherits name='blazing.chain' />
 	
 	<!-- steemjs -->
 	<inherits name="steem.Steem" />
+	
 	<!-- HTML5 -->
 	<inherits name="elemental2.dom.Dom" />
 

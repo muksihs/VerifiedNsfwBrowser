@@ -1,10 +1,25 @@
+buildscript {
+	repositories {
+        jcenter()
+        maven { url 'http://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+        classpath 'org.wisepersist:gwt-gradle-plugin:1.+'
+        classpath 'org.akhikhl.gretty:gretty:+'
+    }
+}
+
+plugins {
+  id "net.ltgt.apt-eclipse" version "0.15"
+}
+
 apply plugin: 'java'
 apply plugin: 'war'
 apply plugin: 'gwt'
 apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
+apply plugin: 'net.ltgt.apt-eclipse'
 apply from: 'https://raw.github.com/gretty-gradle-plugin/gretty/master/pluginScripts/gretty.plugin'
-//apply plugin: 'maven'
 
 version = '20180601'
 group = "muksihs"
@@ -15,17 +30,6 @@ compileTestJava.options.encoding = 'UTF-8'
 
 farm {
 	webapp ':'
-}
-
-buildscript {
-	repositories {
-        jcenter()
-        maven { url 'http://repo.spring.io/plugins-release' }
-    }
-    dependencies {
-        classpath 'org.wisepersist:gwt-gradle-plugin:1.+'
-        classpath 'org.akhikhl.gretty:gretty:+'
-    }
 }
 
 war {
@@ -94,8 +98,13 @@ dependencies {
 	compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
 	
 	gwt 'com.google.gwt:gwt-user:'+gwt.gwtVersion
+	
+	gwt 'com.github.mvp4g:mvp4g2:1.0.0'
+	//gwt 'com.github.mvp4g:mvp4g2-processor:1.0.0'
+	annotationProcessor 'com.github.mvp4g:mvp4g2-processor:1.0.0'
+	
 	//gwt 'org.fusesource.restygwt:restygwt:2.2.+'
-	gwt 'com.google.code.findbugs:jsr305:3.0.0' //required for restygwt compile
+	//gwt 'com.google.code.findbugs:jsr305:3.0.0' //required for restygwt compile
 	//gwt 'de.knightsoft-net:gwt-commons-lang3:3.6-0'
 	gwt 'com.fasterxml.jackson.core:jackson-annotations:2.9.+'
 	gwt 'com.github.nmorel.gwtjackson:gwt-jackson:0.15.2'
@@ -104,12 +113,12 @@ dependencies {
 	gwt 'com.github.gwtmaterialdesign:gwt-material-themes:2.0+'
 	gwt 'com.github.gwtmaterialdesign:gwt-material-addins:2.0+'
 	
-	gwt 'com.google.elemental2:elemental2-core:1.0.0-RC1'
-	gwt 'com.google.elemental2:elemental2-dom:1.0.0-RC1'
+	//gwt 'com.google.elemental2:elemental2-core:1.0.0-RC1'
+	//gwt 'com.google.elemental2:elemental2-dom:1.0.0-RC1'
 	
-	gwt ('com.google.gwt.eventbinder:eventbinder:1.1.0') {
-		exclude module: 'gwt-user'
-	}
+	//gwt ('com.google.gwt.eventbinder:eventbinder:1.1.0') {
+	//	exclude module: 'gwt-user'
+	//}
 	
 	//compression routines for the cache
 	//compile 'com.github.tommyettinger:blazingchain:1.4.+'
@@ -118,11 +127,11 @@ dependencies {
 	
 	//compile 'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:1.9'
 	
-	testCompile 'org.testng:testng:6.+'
+	//testCompile 'org.testng:testng:6.+'
 	//testCompile 'org.seleniumhq.selenium:selenium-server:+'
 }
  
-sourceSets {
+/*sourceSets {
   main {
     compileClasspath += configurations.provided
   }
@@ -130,7 +139,7 @@ sourceSets {
     compileClasspath += configurations.provided
     runtimeClasspath += configurations.provided
   }
-}
+}*/
 
 task "create-dirs" {
 	doLast{
@@ -168,7 +177,7 @@ eclipseJdt {
     f.append('line.separator=\\n\n')
 }}
 
-project.afterEvaluate {
+/*project.afterEvaluate {
 	// use jre lib matching version used by project, not the workspace default
 	if (sourceCompatibility != null) {
 		def target = project.sourceCompatibility.toString()
@@ -186,18 +195,18 @@ project.afterEvaluate {
 			}
 		}
 	}
-}
+}*/
 
 eclipse {
 	project {
 		name = 'VerifiedNsfwBrowser'
 		referencedProjects
-		natures 'org.eclipse.buildship.core.gradleprojectnature'
+		//natures 'org.eclipse.buildship.core.gradleprojectnature'
 		webAppDirName = 'src/main/webapp'
 	}
 
 	classpath {
-		plusConfigurations += [configurations.provided]
+		//plusConfigurations += [configurations.provided]
 		containers += ['org.springsource.ide.eclipse.gradle.classpathcontainer']
 		downloadSources = true
 		downloadJavadoc = true
@@ -206,6 +215,23 @@ eclipse {
 	jdt {
 		sourceCompatibility=1.8
 		targetCompatibility=1.8
+		
+		/*apt {
+		      // whether annotation processing is enabled in Eclipse
+		      // (isAptEnabled in Kotlin)
+		      aptEnabled = compileJava.aptOptions.annotationProcessing
+		      // where Eclipse will output the generated sources; value is interpreted as per project.file()
+		      genSrcDir = file('.apt_generated')
+		      // whether annotation processing is enabled in the editor
+		      // (isReconcileEnabled in Kotlin)
+		      reconcileEnabled = true
+		      // a map of annotation processor options; a null value will pass the argument as -Akey rather than -Akey=value
+		      processorOptions = compileJava.aptOptions.processorArgs
+      	}*/
+      /*factorypath {
+		    plusConfigurations = [ configurations.apt, configurations.testApt ]
+		    minusConfigurations = []
+		}*/
 	}
 
 	wtp {

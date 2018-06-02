@@ -16,3 +16,6 @@ gradle-app.setting
 /.classpath
 /.project
 /.settings/
+/.apt_generated/
+/gwt-unitCache/
+/bin/
