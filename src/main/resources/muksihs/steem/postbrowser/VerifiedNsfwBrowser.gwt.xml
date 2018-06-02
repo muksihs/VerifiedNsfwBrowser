@@ -10,7 +10,7 @@
 	<define-configuration-property name="version" is-multi-valued='false'/>
 	<set-configuration-property name="version" value="20180601"/>
 
-	<entry-point class='muksihs.steem.postbrowser.client.VerifiedNsfwBrowserEP' />
+	<entry-point class='muksihs.steem.postbrowser.client.AppEP' />
 
 	<source path='client' />
 	<source path='shared' />
