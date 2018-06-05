@@ -1,21 +1,22 @@
-package muksihs.steem.postbrowser.ui;
+package muksihs.steem.postbrowser.client;
 
 import com.github.mvp4g.mvp4g2.core.ui.LazyReverseView;
 import com.google.gwt.user.client.ui.Widget;
+
+import muksihs.steem.postbrowser.ui.MainView;
 
 public class ShellView //
 		extends LazyReverseView<IShellView.Presenter> //
 		implements IShellView {
 
+	protected MainView mainView;
 	@Override
 	public Widget asWidget() {
-		// TODO Auto-generated method stub
-		return null;
+		return mainView;
 	}
 
 	@Override
 	public void createView() {
-		// TODO Auto-generated method stub
-
+		mainView = new MainView();
 	}
 }

@@ -1,10 +1,11 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
 	xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:m="urn:import:gwt.material.design.client.ui"
-	>
+	xmlns:x="urn:import:muksihs.steem.postbrowser.ui">
 	<ui:style>
 	
 	</ui:style>
 	<m:MaterialPanel ui:field="mainView">
+	<g:HTMLPanel><h1>Hello world!</h1></g:HTMLPanel>
 	</m:MaterialPanel>
 </ui:UiBinder> 
