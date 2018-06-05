@@ -10,6 +10,6 @@ import com.github.mvp4g.mvp4g2.core.eventbus.annotation.Start;
 @EventBus(shell = ShellPresenter.class)
 public interface AppEventBus extends IsEventBus {
 	@Start
-    @Event
-    void start();
+	@Event
+	void start();
 }

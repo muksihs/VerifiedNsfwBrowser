@@ -5,14 +5,16 @@ import com.github.mvp4g.mvp4g2.core.ui.annotation.EventHandler;
 import com.github.mvp4g.mvp4g2.core.ui.annotation.Handler;
 import com.google.gwt.core.shared.GWT;
 
+import gwt.material.design.client.ui.MaterialLoader;
+
 @Handler
 public class OnStart extends AbstractHandler<AppEventBus> {
 	@EventHandler
 	public void onStart() {
+		MaterialLoader.loading(false);
 		GWT.log("onStart");
 	}
 }
-
 
 // @Override
 // public void execute() {

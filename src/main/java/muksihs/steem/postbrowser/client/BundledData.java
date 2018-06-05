@@ -14,12 +14,14 @@ public interface BundledData extends ClientBundle {
 	@Source("muksihs/steem/postbrowser/shared/nsfw-verified-list.json")
 	@DataResource.MimeType(value = "")
 	TextResource nsfwVerifiedList();
-	
+
 	static class Data {
 		public static NsfwVerifiedList getNsfwVerifiedList() {
 			NsfwVerifiedListMapper mapper = GWT.create(NsfwVerifiedListMapper.class);
 			return mapper.read(BundledData.INSTANCE.nsfwVerifiedList().getText());
 		}
-		interface NsfwVerifiedListMapper extends ObjectMapper<NsfwVerifiedList>{}
+
+		interface NsfwVerifiedListMapper extends ObjectMapper<NsfwVerifiedList> {
+		}
 	}
 }
