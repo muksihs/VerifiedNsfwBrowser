@@ -13,7 +13,6 @@ public class AppEventHandler extends AbstractHandler<AppEventBus> {
 	public void onStart() {
 		MaterialLoader.loading(false);
 		GWT.log("onStart");
-		eventBus.onSetAppVersion("2018-06-05");
 	}
 	
 }

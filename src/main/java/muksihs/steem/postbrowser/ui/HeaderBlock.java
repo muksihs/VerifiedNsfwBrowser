@@ -1,8 +1,5 @@
 package muksihs.steem.postbrowser.ui;
 
-import com.github.mvp4g.mvp4g2.core.ui.AbstractHandler;
-import com.github.mvp4g.mvp4g2.core.ui.annotation.EventHandler;
-import com.github.mvp4g.mvp4g2.core.ui.annotation.Handler;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -12,7 +9,6 @@ import com.google.gwt.user.client.ui.Widget;
 import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialLabel;
 import gwt.material.design.client.ui.MaterialNavBrand;
-import muksihs.steem.postbrowser.client.AppEventBus;
 
 public class HeaderBlock extends Composite {
 	
@@ -64,7 +60,6 @@ public class HeaderBlock extends Composite {
 //		}
 //	}
 
-	@EventHandler
 	public void setAppVersion(String versionTxt) {
 		version.setText(versionTxt);
 		HeaderBlock.versionTxt = versionTxt;
