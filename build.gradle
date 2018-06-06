@@ -102,8 +102,10 @@ dependencies {
 	gwt 'com.google.gwt:gwt-user:'+gwt.gwtVersion
 	
 	gwt 'com.github.mvp4g:mvp4g2:1.0.1'
-	//gwt 'com.github.mvp4g:mvp4g2-processor:1.0.0'
 	annotationProcessor 'com.github.mvp4g:mvp4g2-processor:1.0.1'
+
+	gwt 'com.implimentz:autobus:0.0.5'	
+	annotationProcessor 'com.implimentz:autobus-compiler:0.0.5'
 	
 	//gwt 'org.fusesource.restygwt:restygwt:2.2.+'
 	//gwt 'com.google.code.findbugs:jsr305:3.0.0' //required for restygwt compile
@@ -218,18 +220,18 @@ eclipse {
 		sourceCompatibility=1.8
 		targetCompatibility=1.8
 		
-		//apt {
+		/*apt {
 		      // whether annotation processing is enabled in Eclipse
 		      // (isAptEnabled in Kotlin)
-		      //aptEnabled = compileJava.aptOptions.annotationProcessing
+		      aptEnabled = compileJava.aptOptions.annotationProcessing
 		      // where Eclipse will output the generated sources; value is interpreted as per project.file()
-		  //    genSrcDir = file('generated-sources/annotations')
+		      genSrcDir = file('.generated-sources/annotations')
 		      // whether annotation processing is enabled in the editor
 		      // (isReconcileEnabled in Kotlin)
-		      //reconcileEnabled = true
+		      reconcileEnabled = true
 		      // a map of annotation processor options; a null value will pass the argument as -Akey rather than -Akey=value
-		      //processorOptions = compileJava.aptOptions.processorArgs
-      	//}
+		      processorOptions = compileJava.aptOptions.processorArgs
+      	}*/
       /*factorypath {
 		    plusConfigurations = [ configurations.apt, configurations.testApt ]
 		    minusConfigurations = []
