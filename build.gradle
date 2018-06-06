@@ -103,7 +103,7 @@ dependencies {
 	
 	gwt 'com.github.mvp4g:mvp4g2:1.0.0'
 	//gwt 'com.github.mvp4g:mvp4g2-processor:1.0.0'
-	annotationProcessor 'com.github.mvp4g:mvp4g2-processor:1.0.0'
+	annotationProcessor 'com.github.mvp4g:mvp4g2-processor:1.0.+'
 	
 	//gwt 'org.fusesource.restygwt:restygwt:2.2.+'
 	//gwt 'com.google.code.findbugs:jsr305:3.0.0' //required for restygwt compile
