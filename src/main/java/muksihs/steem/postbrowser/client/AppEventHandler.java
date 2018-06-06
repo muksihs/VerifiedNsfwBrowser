@@ -8,12 +8,14 @@ import com.google.gwt.core.shared.GWT;
 import gwt.material.design.client.ui.MaterialLoader;
 
 @Handler
-public class OnStart extends AbstractHandler<AppEventBus> {
+public class AppEventHandler extends AbstractHandler<AppEventBus> {
 	@EventHandler
 	public void onStart() {
 		MaterialLoader.loading(false);
 		GWT.log("onStart");
+		eventBus.onSetAppVersion("2018-06-05");
 	}
+	
 }
 
 // @Override

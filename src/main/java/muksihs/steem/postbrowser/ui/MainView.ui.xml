@@ -5,7 +5,8 @@
 	<ui:style>
 	
 	</ui:style>
-	<m:MaterialPanel ui:field="mainView">
-	<g:HTMLPanel><h1>Hello world!</h1></g:HTMLPanel>
+	<m:MaterialPanel ui:field="mainView" hideOn="NONE">
+	<x:HeaderBlock></x:HeaderBlock>
+	<m:MaterialPanel hideOn="NONE" style='text-align: left;' ui:field="display" />
 	</m:MaterialPanel>
 </ui:UiBinder> 
