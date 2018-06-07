@@ -14,5 +14,8 @@ public interface AppEventBus extends IsEventBus {
 	void start();
 	
 //	@Event
+//	void setAppVersion(String versionTxt);
+	
+//	@Event
 //	void onSetAppVersion(String versionTxt);
 }

@@ -10,12 +10,13 @@ import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialLabel;
 import gwt.material.design.client.ui.MaterialNavBrand;
 
+
 public class HeaderBlock extends Composite {
-	
+
 	interface HeaderBlockUiBinder extends UiBinder<Widget, HeaderBlock> {
 	}
 
-	private static String versionTxt = "19000101";
+	static String versionTxt = "19000101";
 
 	private static HeaderBlockUiBinder uiBinder = GWT.create(HeaderBlockUiBinder.class);
 
@@ -30,6 +31,7 @@ public class HeaderBlock extends Composite {
 	public HeaderBlock() {
 		super();
 		initWidget(uiBinder.createAndBindUi(this));
+//		Autobus.subscribe(this);
 		version.setText(versionTxt);
 //		account.addClickHandler((e)->fireEvent(new Event.LoginLogout()));
 //		navBrand.addClickHandler((e)->fireEvent(new Event.ShowAbout()));
@@ -44,6 +46,7 @@ public class HeaderBlock extends Composite {
 	protected void onLoad() {
 		super.onLoad();
 //		fireEvent(new Event.GetAppVersion());
+		
 	}
 
 	@Override
@@ -60,8 +63,12 @@ public class HeaderBlock extends Composite {
 //		}
 //	}
 
-	public void setAppVersion(String versionTxt) {
-		version.setText(versionTxt);
-		HeaderBlock.versionTxt = versionTxt;
+	public final void setAppVersion(SetAppVersionEvent versionTxt) {
+		version.setText(versionTxt.version);
+		HeaderBlock.versionTxt = versionTxt.version;
+	}
+
+	public static class SetAppVersionEvent {
+		public String version;
 	}
 }
