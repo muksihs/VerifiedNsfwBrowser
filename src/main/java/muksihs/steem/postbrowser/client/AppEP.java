@@ -16,6 +16,8 @@ public class AppEP implements EntryPoint {
 		GWT.setUncaughtExceptionHandler(handler);
 		App app = new AppImpl();
 		Scheduler.get().scheduleDeferred(() -> app.run());
+		ViewController.bind();
+		AppController.bind();
 	}
 
 	private UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {

@@ -5,10 +5,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 
-public abstract class EventBusComposite extends Composite implements GlobalEventBus {
-
-	interface MyEventBinder extends EventBinder<EventBusComposite> {
-	}
+public abstract class EventBusComposite extends Composite implements GlobalAsyncEventBus {
 
 	protected HandlerRegistration registration;
 
@@ -21,19 +18,19 @@ public abstract class EventBusComposite extends Composite implements GlobalEvent
 	protected void onLoad() {
 		try {
 			registration = getEventBinder().bindEventHandlers(this, getEventBus());
-			super.onLoad();
 		} catch (Exception e) {
 			GWT.log(e.getMessage(), e);
 		}
+		super.onLoad();
 	}
 
 	@Override
 	protected void onUnload() {
 		try {
 			registration.removeHandler();
-			super.onUnload();
 		} catch (Exception e) {
 			GWT.log(e.getMessage(), e);
 		}
+		super.onUnload();
 	};
 }

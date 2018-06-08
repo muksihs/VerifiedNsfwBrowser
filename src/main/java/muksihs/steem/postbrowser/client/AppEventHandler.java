@@ -14,7 +14,6 @@ public class AppEventHandler extends AbstractHandler<AppEventBus> {
 		MaterialLoader.loading(false);
 		GWT.log("onStart");
 	}
-	
 }
 
 // @Override

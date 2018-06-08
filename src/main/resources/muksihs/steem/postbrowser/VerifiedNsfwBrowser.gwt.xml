@@ -15,6 +15,7 @@
 	<source path='client' />
 	<source path='shared' />
 	<source path='ui' />
+	<source path="eventbus"/>
 	
 	<!-- eventbinder -->
 	<inherits name='com.google.web.bindery.event.EventBinder'/>

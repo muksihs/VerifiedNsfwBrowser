@@ -6,13 +6,13 @@
 	</ui:style>
 	<m:MaterialModal ui:field="modal" fullscreen="false">
 		<m:MaterialModalContent>
-			<m:MaterialTitle style="margin-top: -50px" title="Far Horizons Steem"></m:MaterialTitle>
+			<m:MaterialTitle style="margin-top: -50px" title="Verified NSFW Browser"></m:MaterialTitle>
 		<m:MaterialButton ui:field="btnOk"
 				style='margin: 4px; float:right; clear:left;' text="DISMISS"></m:MaterialButton>
 			<g:HTML>
 				<div style='font-size: 150%;'>
 					<p>
-						This web application is used to play the Far Horizons turn based game over the
+						This web application is used to browse Verified NSFW posts on the 
 						<a target="_blank" href='https://steemit.com/welcome'>Steem</a>
 						social media blockchain.
 					</p>
@@ -23,9 +23,6 @@
 						<li>
 							<a href='http://www.gwtproject.org/' target="_blank">GWT (Google Web
 								Toolkit)</a>
-						</li>
-						<li>
-							<a href='https://resty-gwt.github.io/' target="_blank">RestyGWT</a>
 						</li>
 						<li>
 							<a href='https://github.com/FasterXML/jackson-annotations'
@@ -46,10 +43,10 @@
 							<a href='https://github.com/tommyettinger/BlazingChain' target="_blank">BlazingChain</a>
 						</li>
 					</ul>
-<!-- 					<p> -->
-<!-- 						The source code can be found at: -->
-<!-- 						<a href='https://github.com/muksihs/FarHorizonsSteemClient' target="_blank">GITHUB</a> -->
-<!-- 					</p> -->
+					<p>
+						The source code can be found at:
+						<a href='https://github.com/muksihs/VerifiedNsfwBrowser' target="_blank">GITHUB</a>
+					</p>
 				</div>
 			</g:HTML>
 		</m:MaterialModalContent>

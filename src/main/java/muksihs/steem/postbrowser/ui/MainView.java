@@ -2,10 +2,13 @@ package muksihs.steem.postbrowser.ui;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.web.bindery.event.shared.binder.EventBinder;
 
-public class MainView extends Composite {
+import muksihs.steem.postbrowser.eventbus.Event;
+import muksihs.steem.postbrowser.eventbus.EventBusComposite;
+
+public class MainView extends EventBusComposite {
 
 	private static MainViewUiBinder uiBinder = GWT.create(MainViewUiBinder.class);
 
@@ -14,6 +17,18 @@ public class MainView extends Composite {
 
 	public MainView() {
 		initWidget(uiBinder.createAndBindUi(this));
+	}
+
+	interface MyEventBinder extends EventBinder<MainView>{}
+	@Override
+	protected <T extends EventBinder<EventBusComposite>> T getEventBinder() {
+		return GWT.create(MyEventBinder.class);
+	}
+	
+	@Override
+	protected void onLoad() {
+		super.onLoad();
+		fireEvent(new Event.AppVersion("20180608"));
 	}
 
 }

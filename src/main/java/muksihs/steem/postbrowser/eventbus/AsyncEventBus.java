@@ -4,8 +4,6 @@ import com.google.gwt.user.client.Timer;
 import com.google.web.bindery.event.shared.Event;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 
-import elemental2.dom.DomGlobal;
-
 public class AsyncEventBus extends SimpleEventBus {
 	private static void async(Runnable run) {
 		new Timer() {
@@ -22,7 +20,6 @@ public class AsyncEventBus extends SimpleEventBus {
 
 	@Override
 	public void fireEvent(Event<?> event) {
-		DomGlobal.console.log("Event: " + event.getClass().getSimpleName());
 		async(() -> super.fireEvent(event));
 	}
 

@@ -4,7 +4,9 @@ import com.google.gwt.core.client.GWT;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
-public interface GlobalEventBus {
+import elemental2.dom.DomGlobal;
+
+public interface GlobalAsyncEventBus {
 	default EventBus getEventBus() {
 		return Internal.getEventBus();
 	}
@@ -23,8 +25,9 @@ public interface GlobalEventBus {
 				@Override
 				public void fireEvent(com.google.web.bindery.event.shared.Event<?> event) {
 					if (event != null) {
+						DomGlobal.console.log("Event: " + event.getClass().getSimpleName());
 					} else {
-						GWT.log("null event!");
+						DomGlobal.console.log("Null event!");
 					}
 					super.fireEvent(event);
 				};
