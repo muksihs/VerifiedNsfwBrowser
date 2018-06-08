@@ -17,7 +17,7 @@
 	<source path='ui' />
 	
 	<!-- eventbinder -->
-<!-- 	<inherits name='com.google.web.bindery.event.EventBinder'/> -->
+	<inherits name='com.google.web.bindery.event.EventBinder'/>
 	
 	<inherits name='com.github.mvp4g.mvp4g2.Mvp4g2'/>
 	

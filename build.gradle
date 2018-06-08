@@ -104,8 +104,8 @@ dependencies {
 	gwt 'com.github.mvp4g:mvp4g2:1.0.1'
 	annotationProcessor 'com.github.mvp4g:mvp4g2-processor:1.0.1'
 
-	gwt 'com.implimentz:autobus:0.0.5'	
-	annotationProcessor 'com.implimentz:autobus-compiler:0.0.5'
+	//gwt 'com.implimentz:autobus:0.0.5'	
+	//annotationProcessor 'com.implimentz:autobus-compiler:0.0.5'
 	
 	//gwt 'org.fusesource.restygwt:restygwt:2.2.+'
 	//gwt 'com.google.code.findbugs:jsr305:3.0.0' //required for restygwt compile
@@ -129,6 +129,9 @@ dependencies {
 	gwt 'com.github.tommyettinger:blazingchain:1.4.+'
 	gwt group: 'com.github.tommyettinger', name: 'blazingchain', version: '1.4.+', classifier: 'sources'
 	
+	gwt ('com.google.gwt.eventbinder:eventbinder:1.1.0') {
+		exclude module: 'gwt-user'
+	}
 	//compile 'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:1.9'
 	
 	//testCompile 'org.testng:testng:6.+'
