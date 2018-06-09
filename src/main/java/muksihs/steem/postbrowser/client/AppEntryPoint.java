@@ -7,7 +7,7 @@ import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 
-public class AppEP implements EntryPoint, GlobalAsyncEventBus {
+public class AppEntryPoint implements EntryPoint, GlobalAsyncEventBus {
 
 	@Override
 	public void onModuleLoad() {
