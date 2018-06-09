@@ -1,9 +1,26 @@
 package muksihs.steem.postbrowser.eventbus;
 
+import java.util.List;
+
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
 public interface Event {
 	
+	public class NsfwVerifiedAccountsLoaded extends GenericEvent {
+		private final List<String> list;
+		public NsfwVerifiedAccountsLoaded(List<String> list) {
+			this.list=list;
+		}
+		public List<String> getList() {
+			return list;
+		}
+
+	}
+
+	public class LoadNsfwVerifiedAccounts extends GenericEvent {
+
+	}
+
 	public class ShowLoginUi extends GenericEvent {
 
 	}

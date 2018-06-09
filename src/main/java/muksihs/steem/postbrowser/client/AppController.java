@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptException;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.Window.Location;
 import com.google.web.bindery.event.shared.HandlerRegistration;
@@ -28,7 +29,6 @@ import steem.SteemApi;
 import steem.SteemApi.UserAccountInfoList;
 import steem.SteemApi.UserAccountInfoListCallback;
 import steem.SteemAuth;
-import steem.models.AuthorizationList;
 import steem.models.AuthorizationList.AuthArray;
 import steem.models.Authorizations;
 import steem.models.Discussion;
@@ -72,8 +72,10 @@ public class AppController implements GlobalAsyncEventBus {
 	protected void onAppStart(Event.AppStart event) {
 		// load main view
 		fireEvent(new Event.ShowMainView());
-		
+
 		// init
+		fireEvent(new Event.LoadNsfwVerifiedAccounts());
+		
 		// validate cached login credentials (if any)
 		AccountCache cache = new AccountCache();
 		SteemPostingInfo info = cache.get(DEFAULT_USER);
@@ -86,14 +88,15 @@ public class AppController implements GlobalAsyncEventBus {
 		// all done
 		fireEvent(new Event.ShowLoading(false));
 	}
-	
+
 	private GenericEvent afterLoginPendingEvent;
+
 	@EventHandler
 	protected <T extends GenericEvent> void login(Event.Login<T> event) {
 		afterLoginPendingEvent = event.getRefireEvent();
 		fireEvent(new Event.ShowLoginUi());
 	}
-	
+
 	private boolean loggedIn;
 
 	private boolean isLoggedIn() {
@@ -119,8 +122,9 @@ public class AppController implements GlobalAsyncEventBus {
 	protected void getAppVersion(Event.GetAppVersion event) {
 		fireEvent(new Event.AppVersion("20180608-BETA"));
 	}
-
-	public void execute() {
+	
+	@EventHandler
+	protected void onLoadNsfwVerifiedAccounts(Event.LoadNsfwVerifiedAccounts event) {
 		NsfwVerifiedList users = BundledData.Data.getNsfwVerifiedList();
 		final List<String> list = users.getList();
 		// lowercase
@@ -130,7 +134,13 @@ public class AppController implements GlobalAsyncEventBus {
 			li.set(next.toLowerCase().trim());
 		}
 		Collections.sort(list);
-
+		fireEvent(new Event.NsfwVerifiedAccountsLoaded(list));
+	}
+	
+	@EventHandler
+	protected void onNsfwVerifiedAccountsLoaded(Event.NsfwVerifiedAccountsLoaded event) {
+		fireEvent(new Event.ShowLoading(true));
+		List<String> list = event.getList();
 		int maxSublistSize = Math.min(5, list.size());
 		List<String> sublist = new ArrayList<>(list.subList(0, maxSublistSize));
 		UserAccountInfoListCallback callback = new UserAccountInfoListCallback() {
@@ -152,7 +162,7 @@ public class AppController implements GlobalAsyncEventBus {
 					list.subList(0, maxSublistSize).clear();
 					SteemApi.getAccounts(sublist, this);
 				} else {
-					MaterialLoader.loading(false);
+					fireEvent(new Event.ShowLoading(false));
 				}
 			}
 		};
@@ -163,9 +173,10 @@ public class AppController implements GlobalAsyncEventBus {
 
 	public static interface Mapper extends ObjectMapper<Discussion> {
 	}
-	
+
 	private String username = "";
 	private String userWif = "";
+
 	@EventHandler
 	protected void tryLogin(Event.TryLogin event) {
 		final String wif = event.getWif() == null ? "" : event.getWif().trim();
@@ -273,4 +284,18 @@ public class AppController implements GlobalAsyncEventBus {
 		}
 	}
 
+	@EventHandler
+	protected void loginComplete(Event.LoginComplete event) {
+		fireEvent(new Event.ShowLoading(false));
+		loggedIn = event.isLoggedIn();
+		if (afterLoginPendingEvent != null && event.isLoggedIn()) {
+			fireEvent(afterLoginPendingEvent);
+		}
+		afterLoginPendingEvent = null;
+		if (event.isLoggedIn()) {
+			History.fireCurrentHistoryState();
+		} else {
+			
+		}
+	}
 }
