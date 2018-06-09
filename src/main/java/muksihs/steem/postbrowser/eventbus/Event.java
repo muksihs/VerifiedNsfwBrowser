@@ -4,6 +4,25 @@ import com.google.web.bindery.event.shared.binder.GenericEvent;
 
 public interface Event {
 
+	public class Loading extends GenericEvent {
+		private final boolean loading;
+		public Loading(boolean loading) {
+			this.loading=loading;
+		}
+		public boolean isLoading() {
+			return loading;
+		}
+
+	}
+
+	public class ShowMainView extends GenericEvent {
+
+	}
+
+	public class AppStart extends GenericEvent {
+
+	}
+
 	public class GetAppVersion extends GenericEvent {
 
 	}

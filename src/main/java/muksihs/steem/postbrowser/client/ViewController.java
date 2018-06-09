@@ -6,9 +6,12 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
 
+import gwt.material.design.client.ui.MaterialLoader;
 import muksihs.steem.postbrowser.eventbus.Event;
+import muksihs.steem.postbrowser.eventbus.Event.ShowMainView;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 import muksihs.steem.postbrowser.ui.AboutUi;
+import muksihs.steem.postbrowser.ui.MainView;
 
 public class ViewController implements GlobalAsyncEventBus {
 	private static ViewController instance;
@@ -36,6 +39,8 @@ public class ViewController implements GlobalAsyncEventBus {
 
 	private HandlerRegistration registration;
 
+	private MainView mainView;
+
 	private void setRegistration(HandlerRegistration registration) {
 		this.registration = registration;
 	}
@@ -43,6 +48,21 @@ public class ViewController implements GlobalAsyncEventBus {
 	protected ViewController() {
 	}
 
+	@EventHandler
+	protected void onLoading(Event.Loading event) {
+		MaterialLoader.loading(event.isLoading());	
+	}
+	
+	@EventHandler
+	protected void onShowMainView(ShowMainView event) {
+		if (mainView == null) {
+			mainView = new MainView();
+		
+		}
+		RootPanel.get("app").clear();
+		RootPanel.get("app").add(mainView);
+	}
+	
 	@EventHandler
 	protected void showAboutUi(Event.ShowAbout event) {
 		AboutUi about = new AboutUi();

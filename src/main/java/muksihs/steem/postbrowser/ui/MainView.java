@@ -5,7 +5,6 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 
-import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.EventBusComposite;
 
 public class MainView extends EventBusComposite {
@@ -28,7 +27,6 @@ public class MainView extends EventBusComposite {
 	@Override
 	protected void onLoad() {
 		super.onLoad();
-		fireEvent(new Event.AppVersion("20180608"));
 	}
 
 }

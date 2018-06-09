@@ -8,7 +8,7 @@
 
 	<!-- System.getProperties() -->
 	<define-configuration-property name="version" is-multi-valued='false'/>
-	<set-configuration-property name="version" value="20180601"/>
+	<set-configuration-property name="version" value="20180608"/>
 
 	<entry-point class='muksihs.steem.postbrowser.client.AppEP' />
 
@@ -20,7 +20,7 @@
 	<!-- eventbinder -->
 	<inherits name='com.google.web.bindery.event.EventBinder'/>
 	
-	<inherits name='com.github.mvp4g.mvp4g2.Mvp4g2'/>
+<!-- 	<inherits name='com.github.mvp4g.mvp4g2.Mvp4g2'/> -->
 	
 	<!-- compression for the cache -->
 	<inherits name='blazing.chain' />
