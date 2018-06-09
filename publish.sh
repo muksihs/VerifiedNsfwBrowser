@@ -11,9 +11,10 @@ z="$(pwd)"
 
 #automatic version bump
 version="$(date +%Y%m%d)"
-#sed -i "s#<set-configuration-property name=\"version\" value=\"........\"/>#<set-configuration-property name=\"version\" value=\"$version\"/>#" ./src/main/resources/muksihs/e621/resteemit/e621resteemit.gwt.xml
-#git add ./src/main/resources/muksihs/e621/resteemit/e621resteemit.gwt.xml || true
-#git commit -a -m "autocommit on build" || true
+GWTXML="./src/main/resources/muksihs/steem/postbrowser/VerifiedNsfwBrowser.gwt.xml"
+sed -i "s# name=\"version\" value=\"........\"/># name=\"version\" value=\"$version\"/>#" "$GWTXML"
+git add "$GWTXML" || true
+git commit -m "autocommit version on build" "$GWTXML" || true
 
 #build
 gradle clean
