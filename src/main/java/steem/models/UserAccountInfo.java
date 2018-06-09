@@ -12,19 +12,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserAccountInfo implements HasJsonAnyGetterSetter {
 	private BigInteger id;
-	private AccountName name;
+	private String name;
 	private Authorizations owner;
 	public BigInteger getId() {
 		return id;
 	}
 	public void setId(BigInteger id) {
 		this.id = id;
-	}
-	public AccountName getName() {
-		return name;
-	}
-	public void setName(AccountName name) {
-		this.name = name;
 	}
 	public Authorizations getOwner() {
 		return owner;
@@ -549,5 +543,11 @@ public class UserAccountInfo implements HasJsonAnyGetterSetter {
 	@Override
 	public Map<String, Object> anyGetterSetterMap() {
 		return _map;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 }

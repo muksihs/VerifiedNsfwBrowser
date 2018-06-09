@@ -37,7 +37,7 @@ public class HeaderBlock extends EventBusComposite {
 	public HeaderBlock() {
 		super();
 		initWidget(uiBinder.createAndBindUi(this));
-//		account.addClickHandler((e)->fireEvent(new Event.LoginLogout()));
+		account.addClickHandler((e)->fireEvent(new Event.LoginLogout()));
 		navBrand.addClickHandler((e)->fireEvent(new Event.ShowAbout()));
 	}
 
@@ -52,14 +52,14 @@ public class HeaderBlock extends EventBusComposite {
 		fireEvent(new Event.GetAppVersion());
 	}
 
-//	@EventHandler
-//	public void showLoggedInStatus(Event.LoginComplete event) {
-//		if (event.isLoggedIn()) {
-//			account.setText("LOGOUT");
-//		} else {
-//			account.setText("LOGIN");
-//		}
-//	}
+	@EventHandler
+	public void showLoggedInStatus(Event.LoginComplete event) {
+		if (event.isLoggedIn()) {
+			account.setText("LOGOUT");
+		} else {
+			account.setText("LOGIN");
+		}
+	}
 
 	@EventHandler
 	public final void setAppVersion(Event.AppVersion event) {

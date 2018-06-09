@@ -6,11 +6,15 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
 
+import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialLoader;
+import gwt.material.design.client.ui.MaterialModal;
+import gwt.material.design.client.ui.MaterialTitle;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.Event.ShowMainView;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 import muksihs.steem.postbrowser.ui.AboutUi;
+import muksihs.steem.postbrowser.ui.LoginUi;
 import muksihs.steem.postbrowser.ui.MainView;
 
 public class ViewController implements GlobalAsyncEventBus {
@@ -47,9 +51,16 @@ public class ViewController implements GlobalAsyncEventBus {
 
 	protected ViewController() {
 	}
-
+	
 	@EventHandler
-	protected void onLoading(Event.Loading event) {
+	protected void onShowLoginUi(Event.ShowLoginUi event) {
+		LoginUi loginUi = new LoginUi();
+		RootPanel.get().add(loginUi);
+		loginUi.open();
+	}
+	
+	@EventHandler
+	protected void onShowLoading(Event.ShowLoading event) {
 		MaterialLoader.loading(event.isLoading());	
 	}
 	
@@ -64,9 +75,27 @@ public class ViewController implements GlobalAsyncEventBus {
 	}
 	
 	@EventHandler
-	protected void showAboutUi(Event.ShowAbout event) {
+	protected void onShowAbout(Event.ShowAbout event) {
 		AboutUi about = new AboutUi();
 		RootPanel.get().add(about);
 		about.open();
+	}
+	
+	@EventHandler
+	protected void alertMessage(Event.AlertMessage event) {
+		MaterialModal modal = new MaterialModal();
+		modal.setDismissible(true);
+		modal.setTitle("Alert!");
+		modal.addCloseHandler((e) -> modal.removeFromParent());
+		MaterialTitle title = new MaterialTitle(event.getMessage());
+		title.setMarginTop(-50);
+		modal.add(title);
+		MaterialButton btnOk = new MaterialButton("OK");
+//		btnOk.getElement().getStyle().setBackgroundColor("DarkBlue");
+		btnOk.setMargin(4);
+		btnOk.addClickHandler((e) -> modal.close());
+		modal.add(btnOk);
+		RootPanel.get().add(modal);
+		modal.open();
 	}
 }
