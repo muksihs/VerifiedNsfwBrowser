@@ -65,8 +65,8 @@ public class AppController implements GlobalAsyncEventBus {
 		fireEvent(new Event.ShowMainView());
 
 		// init
-		//fireEvent(new Event.LoadNsfwVerifiedAccounts());
-		
+		// fireEvent(new Event.LoadNsfwVerifiedAccounts());
+
 		// validate cached login credentials (if any)
 		AccountCache cache = new AccountCache();
 		SteemPostingInfo info = cache.get(DEFAULT_USER);
@@ -111,7 +111,14 @@ public class AppController implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void getAppVersion(Event.GetAppVersion event) {
-		fireEvent(new Event.AppVersion("20180608-BETA"));
+		final String versionProperty;
+		final String dateString = new java.sql.Date(System.currentTimeMillis()).toString();
+		if (!Util.isSdm()) {
+			versionProperty = System.getProperty("version", dateString + "-BETA");
+		} else {
+			versionProperty = String.valueOf(dateString+"-SDM");
+		}
+		fireEvent(new Event.AppVersion(versionProperty));
 	}
 
 	private String username = "";
@@ -235,7 +242,7 @@ public class AppController implements GlobalAsyncEventBus {
 		if (event.isLoggedIn()) {
 			History.fireCurrentHistoryState();
 		} else {
-			
+
 		}
 	}
 }
