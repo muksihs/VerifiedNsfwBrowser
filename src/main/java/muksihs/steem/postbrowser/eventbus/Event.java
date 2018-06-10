@@ -4,8 +4,24 @@ import java.util.List;
 
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
+import muksihs.steem.postbrowser.shared.BlogIndexEntry;
+
 public interface Event {
 	
+	public class Indexing extends GenericEvent {
+
+		private final boolean indexing;
+
+		public Indexing(boolean indexing) {
+			this.indexing=indexing;
+		}
+
+		public boolean isIndexing() {
+			return indexing;
+		}
+
+	}
+
 	public class NsfwVerifiedAccountsLoaded extends GenericEvent {
 		private final List<String> list;
 		public NsfwVerifiedAccountsLoaded(List<String> list) {

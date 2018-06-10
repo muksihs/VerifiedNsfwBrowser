@@ -20,11 +20,17 @@ public class AsyncEventBus extends SimpleEventBus {
 
 	@Override
 	public void fireEvent(Event<?> event) {
+		if (event==null) {
+			throw new IllegalArgumentException("NULL EVENT");
+		}
 		async(() -> super.fireEvent(event));
 	}
 
 	@Override
 	public void fireEventFromSource(Event<?> event, Object source) {
+		if (event==null) {
+			throw new IllegalArgumentException("NULL EVENT");
+		}
 		async(() -> super.fireEventFromSource(event, source));
 	}
 

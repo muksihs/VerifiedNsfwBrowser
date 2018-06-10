@@ -16,6 +16,7 @@ import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsType;
 import steem.models.Discussion;
+import steem.models.DiscussionMetadata;
 import steem.models.Discussions;
 import steem.models.TrendingTags;
 import steem.models.UserAccountInfo;
@@ -108,6 +109,20 @@ public class SteemApi {
 		}
 	}
 
+	@JsMethod(name = "getDiscussionsByBlog")
+	private static native void _getDiscussionsByBlog(JavaScriptObject query, //
+			SteemJsCallback cb);
+
+	@JsOverlay
+	public static void getDiscussionsByBlog(String username, //
+			int limit, //
+			DiscussionsCallback callback) {
+		JSONObject json = new JSONObject();
+		json.put("tag", new JSONString(username));
+		json.put("limit", new JSONNumber(limit));
+		_getDiscussionsByBlog(json.getJavaScriptObject(), (error, result) -> callback.onResult(error, result));
+	}
+
 	@JsMethod(name = "getDiscussionsByCreated")
 	private static native void _getDiscussionsByCreated(JavaScriptObject query, //
 			SteemJsCallback jsCallback);
@@ -145,11 +160,15 @@ public class SteemApi {
 		_getAccounts(usernames.toArray(new String[usernames.size()]),
 				(error, result) -> callback.onResult(error, result));
 	}
-	
+
 	@JsOverlay
 	public static void getAccounts(String[] usernames, UserAccountInfoListCallback callback) {
-		_getAccounts(usernames,
-				(error, result) -> callback.onResult(error, result));
+		_getAccounts(usernames, (error, result) -> callback.onResult(error, result));
+	}
+	
+	@JsOverlay
+	public static void getAccount(String username, UserAccountInfoListCallback callback) {
+		_getAccounts(new String[] {username}, (error, result) -> callback.onResult(error, result));
 	}
 
 	public static interface UserAccountInfoListCallback
@@ -187,45 +206,13 @@ public class SteemApi {
 			return GWT.create(DiscussionsMapper.class);
 		}
 	}
-
-	private static native void getDiscussionsByBlog(JavaScriptObject query, SteemCallback_old<JavaScriptObject> cb);
+	
+	public static interface DiscussionMetadataMapper extends ObjectMapper<DiscussionMetadata> {
+	}
 
 	@JsOverlay
-	public static void getDiscussionsByBlog(String username, int count, SteemCallback_old<Discussions> cb) {
-		if (username == null) {
-			username = "";
-		}
-		username = username.replace("\"", "\\\"");
-		JSONObject query = new JSONObject();
-		query.put("tag", new JSONString(username));
-		query.put("limit", new JSONNumber(count));
-		SteemCallback_old<JavaScriptObject> parseCb = new SteemCallback_old<JavaScriptObject>() {
-			@Override
-			public void onResult(JavaScriptObject error, JavaScriptObject result) {
-				if (error != null) {
-					cb.onResult(error, null);
-					return;
-				}
-				if (result == null) {
-					DomGlobal.console.log("getDiscussionsByBlog: NULL RESPONSE.");
-					return;
-				}
-				try {
-					String stringify = "{\"discussions\":" + JsonUtils.stringify(result) + "}";
-					Discussions d = Util.discussionsCodec.read(stringify);
-					if (d == null) {
-						DomGlobal.console.log("Decoding FAIL: d == null!");
-						cb.onResult(error, null);
-						return;
-					}
-					cb.onResult(error, d);
-				} catch (Exception e) {
-					DomGlobal.console.log("Exception: " + e.getMessage());
-				}
-			}
-		};
-		getDiscussionsByBlog(query.getJavaScriptObject(), parseCb);
-	}
+	public static DiscussionMetadataMapper discussionMetadataMapper = GWT.create(DiscussionMetadataMapper.class);
+
 
 	public static class Util {
 		// old
@@ -238,12 +225,5 @@ public class SteemApi {
 		}
 
 		public static DiscussionCodec discussionCodec = GWT.create(DiscussionCodec.class);
-
-		// public static interface JsonMetadataCodec extends ObjectMapper<JsonMetadata>
-		// {
-		// }
-
-		// public static JsonMetadataCodec jsonMetadataCodec =
-		// GWT.create(JsonMetadataCodec.class);
 	}
 }

@@ -1,13 +1,7 @@
 package muksihs.steem.postbrowser.client;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-import java.util.TreeSet;
 
-import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.user.client.History;
@@ -19,11 +13,9 @@ import com.google.web.bindery.event.shared.binder.EventHandler;
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
 import elemental2.dom.DomGlobal;
-import gwt.material.design.client.ui.MaterialLoader;
 import muksihs.steem.postbrowser.client.cache.AccountCache;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
-import muksihs.steem.postbrowser.shared.NsfwVerifiedList;
 import muksihs.steem.postbrowser.shared.SteemPostingInfo;
 import steem.SteemApi;
 import steem.SteemApi.UserAccountInfoList;
@@ -31,7 +23,6 @@ import steem.SteemApi.UserAccountInfoListCallback;
 import steem.SteemAuth;
 import steem.models.AuthorizationList.AuthArray;
 import steem.models.Authorizations;
-import steem.models.Discussion;
 import steem.models.UserAccountInfo;
 
 public class AppController implements GlobalAsyncEventBus {
@@ -74,7 +65,7 @@ public class AppController implements GlobalAsyncEventBus {
 		fireEvent(new Event.ShowMainView());
 
 		// init
-		fireEvent(new Event.LoadNsfwVerifiedAccounts());
+		//fireEvent(new Event.LoadNsfwVerifiedAccounts());
 		
 		// validate cached login credentials (if any)
 		AccountCache cache = new AccountCache();
@@ -121,57 +112,6 @@ public class AppController implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void getAppVersion(Event.GetAppVersion event) {
 		fireEvent(new Event.AppVersion("20180608-BETA"));
-	}
-	
-	@EventHandler
-	protected void onLoadNsfwVerifiedAccounts(Event.LoadNsfwVerifiedAccounts event) {
-		NsfwVerifiedList users = BundledData.Data.getNsfwVerifiedList();
-		final List<String> list = users.getList();
-		// lowercase
-		ListIterator<String> li = list.listIterator();
-		while (li.hasNext()) {
-			String next = li.next();
-			li.set(next.toLowerCase().trim());
-		}
-		Collections.sort(list);
-		fireEvent(new Event.NsfwVerifiedAccountsLoaded(list));
-	}
-	
-	@EventHandler
-	protected void onNsfwVerifiedAccountsLoaded(Event.NsfwVerifiedAccountsLoaded event) {
-		fireEvent(new Event.ShowLoading(true));
-		List<String> list = event.getList();
-		int maxSublistSize = Math.min(5, list.size());
-		List<String> sublist = new ArrayList<>(list.subList(0, maxSublistSize));
-		UserAccountInfoListCallback callback = new UserAccountInfoListCallback() {
-			@Override
-			public void onResult(String error, UserAccountInfoList result) {
-				Set<String> receivedUsers = new TreeSet<>();
-				for (UserAccountInfo user : result.getList()) {
-					receivedUsers.add(user.getName());
-				}
-
-				sublist.removeAll(receivedUsers);
-				if (!sublist.isEmpty()) {
-					GWT.log("=== BAD ACCOUNT(S): " + sublist.toString());
-				}
-				if (!list.isEmpty()) {
-					int maxSublistSize = Math.min(5, list.size());
-					sublist.clear();
-					sublist.addAll(new ArrayList<>(list.subList(0, maxSublistSize)));
-					list.subList(0, maxSublistSize).clear();
-					SteemApi.getAccounts(sublist, this);
-				} else {
-					fireEvent(new Event.ShowLoading(false));
-				}
-			}
-		};
-		// process in sets of 5
-		SteemApi.getAccounts(sublist, callback);
-		list.subList(0, maxSublistSize).clear();
-	}
-
-	public static interface Mapper extends ObjectMapper<Discussion> {
 	}
 
 	private String username = "";
@@ -272,7 +212,7 @@ public class AppController implements GlobalAsyncEventBus {
 			username = username.trim().substring(1);
 		}
 		try {
-			SteemApi.getAccounts(new String[] { username }, cb);
+			SteemApi.getAccount(username, cb);
 		} catch (Exception e) {
 			DomGlobal.console.log(e);
 			new Timer() {

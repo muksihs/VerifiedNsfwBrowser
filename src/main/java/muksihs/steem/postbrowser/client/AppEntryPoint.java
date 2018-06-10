@@ -14,6 +14,7 @@ public class AppEntryPoint implements EntryPoint, GlobalAsyncEventBus {
 		GWT.setUncaughtExceptionHandler(handler);
 		ViewController.bind();
 		AppController.bind();
+		VerifiedNsfwBlogData.bind();
 		fireEvent((new Event.ShowLoading(true)));
 		fireEvent(new Event.AppStart());
 	}
