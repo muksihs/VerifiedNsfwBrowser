@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
-import muksihs.steem.postbrowser.shared.BlogIndexEntry;
-
 public interface Event {
 	
 	public class Indexing extends GenericEvent {

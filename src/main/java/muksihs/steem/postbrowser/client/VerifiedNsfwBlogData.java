@@ -123,6 +123,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			fireEvent(new Event.ShowLoading(false));
 			return;
 		}
+		fireEvent(new Event.ShowLoading(true));
 		DiscussionsCallback cb=new DiscussionsCallback() {
 			@Override
 			public void onResult(String error, Discussions result) {
@@ -147,7 +148,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	
 	@EventHandler
 	protected void onNsfwVerifiedAccountsLoaded(Event.NsfwVerifiedAccountsLoaded event) {
-		fireEvent(new Event.ShowLoading(true));
 		List<String> list = event.getList();
 		if (list==null||list.isEmpty()) {
 			return;
