@@ -2,12 +2,15 @@ package muksihs.steem.postbrowser.shared;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -24,13 +27,15 @@ import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
  *
  */
 public class BlogIndex implements GlobalAsyncEventBus {
-	private final Map<String, Set<BlogIndexEntry>> BY_TAG;
+	private final Map<String, Set<BlogIndexEntry>> byTag;
+	private final Set<String> authors;
+	private final Map<String, BlogIndexEntry> mostRecentByAuthor;
 
 	// deduped values for serialization
 	@JsonValue
 	protected Collection<BlogIndexEntry> jsonValue() {
 		Set<BlogIndexEntry> values = new HashSet<>();
-		for (Set<BlogIndexEntry> entries : BY_TAG.values()) {
+		for (Set<BlogIndexEntry> entries : byTag.values()) {
 			values.addAll(entries);
 		}
 		return values;
@@ -47,6 +52,25 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	public static enum FilteredListMode {
 		AND, OR;
 	}
+	
+	public BlogIndexEntry getMostRecentEntry(String author) {
+		return mostRecentByAuthor.get(author);
+	}
+	
+	public List<String> getDateSortedAuthors() {
+		List<String> authors = new ArrayList<>(mostRecentByAuthor.keySet());
+		Collections.sort(authors, (a,b)->{
+			BlogIndexEntry ea = mostRecentByAuthor.get(a);
+			BlogIndexEntry eb = mostRecentByAuthor.get(b);
+			if (ea!=null && eb!=null) {
+				if (!ea.getCreated().equals(eb.getCreated())) {
+					return -ea.getCreated().compareTo(eb.getCreated());
+				}
+			}
+			return a.compareToIgnoreCase(b);
+		});
+		return authors;
+	}
 
 	public List<BlogIndexEntry> getFilteredList(//
 			FilteredListMode mode, //
@@ -58,16 +82,16 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		}
 		if (includeTags == null || includeTags.isEmpty()) {
 			// include ALL posts if no tags provided
-			for (Set<BlogIndexEntry> entrySets : BY_TAG.values()) {
+			for (Set<BlogIndexEntry> entrySets : byTag.values()) {
 				list.addAll(entrySets);
 			}
 		} else {
 			ensureTagEntriesExist(includeTags);
 			Iterator<String> iTags = includeTags.iterator();
-			list.addAll(BY_TAG.get(iTags.next()));
+			list.addAll(byTag.get(iTags.next()));
 			includeTagLoop: while (iTags.hasNext()) {
 				String tag = iTags.next();
-				Set<BlogIndexEntry> tmp = BY_TAG.get(tag);
+				Set<BlogIndexEntry> tmp = byTag.get(tag);
 				switch (mode) {
 				case AND:
 					list.retainAll(tmp);
@@ -84,7 +108,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				Iterator<String> iExclude = excludeTags.iterator();
 				excludeTagLoop: while (iExclude.hasNext()) {
 					String tag = iExclude.next();
-					list.removeAll(BY_TAG.get(tag));
+					list.removeAll(byTag.get(tag));
 					if (list.isEmpty()) {
 						break excludeTagLoop;
 					}
@@ -95,7 +119,9 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	}
 
 	public BlogIndex() {
-		BY_TAG = new HashMap<>();
+		byTag = new HashMap<>();
+		authors = new TreeSet<>();
+		mostRecentByAuthor = new HashMap<>();
 	}
 
 	public void add(BlogIndexEntry entry) {
@@ -112,23 +138,32 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				tags.add(tag);
 			}
 		}
-		if (entry.getAuthor() != null) {
+		author: if (entry.getAuthor() != null) {
 			String author = entry.getAuthor();
 			author = author.trim().toLowerCase();
-			if (!author.isEmpty()) {
-				tags.add(author);
+			if (author.isEmpty()) {
+				break author;
+			}
+			authors.add(author);
+			tags.add("@" + author);
+			final Date created = entry.getCreated();
+			if (created != null) {
+				BlogIndexEntry prev = mostRecentByAuthor.get(author);
+				if (prev == null || created.after(prev.getCreated())) {
+					mostRecentByAuthor.put(author, entry);
+				}
 			}
 		}
 		ensureTagEntriesExist(tags);
 		for (String tag : tags) {
-			BY_TAG.get(tag).add(entry);
+			byTag.get(tag).add(entry);
 		}
 	}
 
 	private void ensureTagEntriesExist(Collection<String> tags) {
 		for (String tag : tags) {
-			if (!BY_TAG.containsKey(tag)) {
-				BY_TAG.put(tag, new HashSet<BlogIndexEntry>());
+			if (!byTag.containsKey(tag)) {
+				byTag.put(tag, new HashSet<BlogIndexEntry>());
 			}
 		}
 	}
@@ -158,7 +193,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	}
 
 	public Set<String> getTags() {
-		return new HashSet<>(BY_TAG.keySet());
+		return new HashSet<>(byTag.keySet());
 	}
 
 	public List<BlogIndexEntry> getEntries() {

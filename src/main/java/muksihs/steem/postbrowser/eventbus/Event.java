@@ -1,5 +1,7 @@
 package muksihs.steem.postbrowser.eventbus;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.web.bindery.event.shared.binder.GenericEvent;
@@ -24,6 +26,9 @@ public interface Event {
 		private final List<String> list;
 		public NsfwVerifiedAccountsLoaded(List<String> list) {
 			this.list=list;
+		}
+		public NsfwVerifiedAccountsLoaded(Collection<String> list) {
+			this.list=new ArrayList<>(list);
 		}
 		public List<String> getList() {
 			return list;

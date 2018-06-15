@@ -242,7 +242,7 @@ public class AppController implements GlobalAsyncEventBus {
 		if (event.isLoggedIn()) {
 			History.fireCurrentHistoryState();
 		} else {
-
+			History.fireCurrentHistoryState();
 		}
 	}
 }

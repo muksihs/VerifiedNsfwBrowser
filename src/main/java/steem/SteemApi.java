@@ -18,12 +18,13 @@ import jsinterop.annotations.JsType;
 import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
 import steem.models.Discussions;
+import steem.models.FollowingList;
 import steem.models.TrendingTags;
 import steem.models.UserAccountInfo;
 
 @JsType(namespace = "steem", name = "api", isNative = true)
 public class SteemApi {
-
+	
 	@JsMethod(name = "getContentReplies")
 	private static native void _getContentReplies(String username, String permlink,
 			SteemCallback_old<JavaScriptObject> discussion);
@@ -88,9 +89,28 @@ public class SteemApi {
 		};
 		_getContent(username, permlink, parseCb);
 	}
-
+	
+	
+	public static interface FollowingListMapper extends ObjectMapper<FollowingList> {
+	}
+	public static interface FollowingListCallback extends SteemTypedCallback<FollowingList, FollowingListMapper> {
+		@Override
+		default FollowingListMapper mapper() {
+			return GWT.create(FollowingListMapper.class);
+		}
+	}
+	@JsMethod(name="getFollowing")
+	private static native void _getFollowing(String username, String startFollowing, String followType, int limit, SteemJsCallback jsCallback);
+	@JsOverlay
+	public static void getFollowing(String username, String startFollowing, String followType, int limit, FollowingListCallback callback) {
+		_getFollowing(username, startFollowing, followType, limit, (error, result) -> {
+			callback.onResult(error, result);
+		});
+	}
+	
 	@JsMethod(name = "getTrendingTags")
 	private static native void _getTrendingTags(String afterTag, int limit, SteemJsCallback jsCallback);
+	
 
 	@JsOverlay
 	public static void getTrendingTags(String afterTag, int limit, TrendingTagsCallback callback) {
