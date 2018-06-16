@@ -36,29 +36,29 @@ import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 public class BrowseView extends EventBusComposite {
 
 	@UiField
-	MaterialPanel posts;
+	protected MaterialPanel posts;
 	@UiField
-	MaterialPanel filterTags;
+	protected MaterialPanel filterTags;
 	@UiField
-	MaterialPanel availableTags;
+	protected MaterialPanel availableTags;
 	
 	@UiField
-	MaterialButton loadFilter;
+	protected MaterialButton loadFilter;
 	@UiField
-	MaterialButton saveFilter;
+	protected MaterialButton saveFilter;
 	@UiField
-	MaterialButton clearSearch;
+	protected MaterialButton clearFilter;
 	@UiField
-	MaterialButton mostRecent;
+	protected MaterialButton mostRecent;
 	@UiField
-	MaterialButton previous;
+	protected MaterialButton previous;
 	@UiField
-	MaterialButton next;
+	protected MaterialButton next;
 	
 	@UiField
-	MaterialButton previousBtm;
+	protected MaterialButton previousBtm;
 	@UiField
-	MaterialButton nextBtm;
+	protected MaterialButton nextBtm;
 
 	private static BrowseViewUiBinder uiBinder = GWT.create(BrowseViewUiBinder.class);
 
@@ -106,7 +106,7 @@ public class BrowseView extends EventBusComposite {
 //		ratingSafe.addClickHandler((e) -> updateRatings(ratingSafe));
 //		ratingQuestionable.addClickHandler((e) -> updateRatings(ratingQuestionable));
 //		ratingExplicit.addClickHandler((e) -> updateRatings(ratingExplicit));
-		clearSearch.addClickHandler((e)->fireEvent(new Event.ClearSearch()));
+		clearFilter.addClickHandler((e)->fireEvent(new Event.ClearSearch()));
 		
 		loadFilter.addClickHandler((e)->fireEvent(new Event.LoadFilter()));
 		saveFilter.addClickHandler((e)->fireEvent(new Event.SaveFilter()));
@@ -139,10 +139,9 @@ public class BrowseView extends EventBusComposite {
 	}
 
 	@EventHandler
-	protected void showAvailableTags(Event.ShowAvailableTags event) {
-		availableTags.clear();
-		tags.closeAll();
+	protected void onSetAvailableTags(Event.SetAvailableTags event) {
 		Scheduler.get().scheduleDeferred(() -> {
+			tags.closeAll();
 			MaterialPanel panel = new MaterialPanel();
 			for (String tag : event.getTags()) {
 				MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
@@ -154,6 +153,7 @@ public class BrowseView extends EventBusComposite {
 				tagLabel.setMargin(1);
 				panel.add(tagLabel);
 			}
+			availableTags.clear();
 			availableTags.add(panel);
 		});
 	}

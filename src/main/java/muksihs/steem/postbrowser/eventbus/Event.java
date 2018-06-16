@@ -74,9 +74,9 @@ private final String tag;
 		}
 	}
 
-	public class ShowAvailableTags extends GenericEvent {
+	public class SetAvailableTags extends GenericEvent {
 		private final List<String> tags;
-		public ShowAvailableTags(Collection<String> tags) {
+		public SetAvailableTags(Collection<String> tags) {
 			this.tags=new ArrayList<>(tags);
 		}
 		public List<String> getTags() {

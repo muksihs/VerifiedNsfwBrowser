@@ -9,8 +9,8 @@
 		<m:MaterialPanel style='text-align: right; margin-top: 2px;'
 			ui:field="menu">
 			<m:MaterialPanel>
-				<m:MaterialButton ui:field="clearSearch" style='margin: 2px;'
-					text="Clear Search" />
+				<m:MaterialButton ui:field="clearFilter" style='margin: 2px;'
+					text="Clear Filter" />
 				<m:MaterialButton ui:field="loadFilter" style='margin: 2px;'
 					text="Load Filter" />
 				<m:MaterialButton ui:field="saveFilter" style='margin: 2px;'
