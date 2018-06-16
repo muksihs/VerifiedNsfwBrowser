@@ -6,11 +6,12 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
 import com.google.gwt.core.client.ScriptInjector;
 
+import elemental2.dom.DomGlobal;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 
 public class AppEntryPoint implements EntryPoint, GlobalAsyncEventBus {
-	private static final String STEEMJS="https://cdn.steemjs.com/lib/latest/steem.min.js";
+	private static final String STEEMJS="//cdn.steemjs.com/lib/latest/steem.min.js";
 	@Override
 	public void onModuleLoad() {
 		GWT.setUncaughtExceptionHandler(handler);
@@ -26,7 +27,9 @@ public class AppEntryPoint implements EntryPoint, GlobalAsyncEventBus {
 			
 			@Override
 			public void onFailure(Exception reason) {
-				
+				DomGlobal.console.log("SteemJs Load Error: "+reason.getMessage());
+				GWT.log("SteemJs Load Error", reason);
+				ScriptInjector.fromUrl(STEEMJS).setRemoveTag(false).setWindow(ScriptInjector.TOP_WINDOW).setCallback(this).inject();				
 			}
 		};
 		ScriptInjector.fromUrl(STEEMJS).setRemoveTag(false).setWindow(ScriptInjector.TOP_WINDOW).setCallback(loaded).inject();
