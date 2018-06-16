@@ -1,6 +1,5 @@
 package steem;
 
-import java.util.HashMap;
 import java.util.List;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
@@ -214,8 +213,8 @@ public class SteemApi {
 		}
 	}
 
-	public static interface HashMapMapper extends ObjectMapper<HashMap<String, Object>> {
-	}
+//	public static interface HashMapMapper extends ObjectMapper<HashMap<String, Object>> {
+//	}
 
 	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
 	}

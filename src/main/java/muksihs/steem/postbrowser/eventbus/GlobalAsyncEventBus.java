@@ -35,8 +35,9 @@ public interface GlobalAsyncEventBus {
 				@Override
 				public void fireEventFromSource(com.google.web.bindery.event.shared.Event<?> event, Object source) {
 					if (event != null) {
+						DomGlobal.console.log("Event: " + event.getClass().getSimpleName());
 					} else {
-						GWT.log("null event!");
+						DomGlobal.console.log("null event!");
 					}
 					super.fireEventFromSource(event, source);
 				};
