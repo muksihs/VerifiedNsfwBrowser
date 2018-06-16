@@ -273,6 +273,15 @@ public class BrowseView extends EventBusComposite {
 			steemPost.setText("STEEMIT POST");
 			steemPost.setType(ButtonType.RAISED);
 			
+			MaterialLink busyPost = new MaterialLink();
+			String bhref="https://busy.org/"+preview.getTags().get(0)+"/@"+preview.getAuthor()+"/"+preview.getPermlink();
+			busyPost.setWidth("45%");
+			busyPost.setMargin(2);
+			busyPost.setTarget("_blank");
+			busyPost.setHref(bhref);
+			busyPost.setText("BUSY.ORG POST");
+			busyPost.setType(ButtonType.RAISED);
+			
 			MaterialPanel panel = new MaterialPanel();
 			panel.getElement().getStyle().setVerticalAlign(VerticalAlign.TOP);
 			panel.getElement().getStyle().setDisplay(Style.Display.INLINE_BLOCK);
@@ -288,6 +297,7 @@ public class BrowseView extends EventBusComposite {
 			panel.add(viewTags);
 			panel.add(zoomImage);
 			panel.add(steemPost);
+			panel.add(busyPost);
 			posts.add(panel);
 		}
 		GWT.log("POSTS PANEL PREVIEWS: "+posts.getChildrenList().size());
