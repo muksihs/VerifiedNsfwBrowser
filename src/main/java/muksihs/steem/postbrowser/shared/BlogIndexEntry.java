@@ -10,15 +10,42 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	private String permlink;
 	private List<String> tags;
 	
+	/**
+	 * Date descending, author ascending.
+	 */
 	@Override
 	public int compareTo(BlogIndexEntry o) {
-		if (getCreated().compareTo(o.created)!=0) {
-			return getCreated().compareTo(o.getCreated());
+		Date created = getCreated();
+		Date oCreated = o.created;
+		if (created==null) {
+			created=new Date(0);
 		}
-		if (!getAuthor().equalsIgnoreCase(o.getAuthor())) {
-			return getAuthor().compareToIgnoreCase(o.getAuthor());
+		if (oCreated==null) {
+			created = new Date(0);
 		}
-		return getPermlink().compareToIgnoreCase(o.getPermlink());
+		if (created.compareTo(oCreated)!=0) {
+			return -created.compareTo(o.getCreated());
+		}
+		String author = getAuthor();
+		String oAuthor = o.getAuthor();
+		if (author==null) {
+			author = "";
+		}
+		if (oAuthor==null) {
+			oAuthor = "";
+		}
+		if (!author.equalsIgnoreCase(oAuthor)) {
+			return author.compareToIgnoreCase(oAuthor);
+		}
+		String permlink = getPermlink();
+		String oPermlink = o.getPermlink();
+		if (permlink==null) {
+			permlink="";
+		}
+		if (oPermlink==null) {
+			oPermlink="";
+		}
+		return permlink.compareToIgnoreCase(oPermlink);
 	}
 	@Override
 	public boolean equals(Object obj) {
