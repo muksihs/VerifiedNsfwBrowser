@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class DiscussionMetadata implements HasJsonAnyGetterSetter {
 	
+	private String thumbnail;
 	private List<String> image;
 	private List<String> links;
 	private String app;
@@ -59,5 +60,11 @@ public class DiscussionMetadata implements HasJsonAnyGetterSetter {
 	}
 	public void setLinks(List<String> links) {
 		this.links = links;
+	}
+	public String getThumbnail() {
+		return thumbnail;
+	}
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
 	}
 }

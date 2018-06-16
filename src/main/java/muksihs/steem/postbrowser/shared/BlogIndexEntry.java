@@ -10,6 +10,7 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	private String author;
 	private Date created;
 	private String permlink;
+	private String thumbnail;
 	private List<String> image;
 	private List<String> tags;
 	
@@ -137,5 +138,11 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	}
 	public void setImage(List<String> image) {
 		this.image = image;
+	}
+	public String getThumbnail() {
+		return thumbnail;
+	}
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
 	}
 }

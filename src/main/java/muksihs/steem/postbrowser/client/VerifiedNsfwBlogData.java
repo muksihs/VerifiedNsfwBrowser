@@ -88,6 +88,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 				entry.setTags(metadata.getTags());
 				entry.setImage(metadata.getImage());
+				entry.setThumbnail(metadata.getThumbnail());
 			} catch (JsonDeserializationException e) {
 				GWT.log(e.getMessage(), e);
 			}

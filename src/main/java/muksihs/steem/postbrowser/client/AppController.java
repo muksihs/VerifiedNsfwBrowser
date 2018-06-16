@@ -87,6 +87,7 @@ public class AppController implements GlobalAsyncEventBus {
 		}
 		this.haveTags.remove(tag);
 		this.notTags.remove(tag);
+		DomGlobal.console.log("#onRemoveFromFilter", "HAVE TAGS: ", haveTags.toString(), "NOT TAGS: ", notTags.toString(), filterMode.name());
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
 	}
@@ -331,13 +332,13 @@ public class AppController implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onUpdatedPreviewList(Event.UpdatedPreviewList event) {
 		List<BlogIndexEntry> list = event.getList();
-		while (pageNo*PAGE_SIZE>list.size()) {
+		while (pageNo*PAGE_SIZE>list.size() && pageNo>0) {
 			pageNo--;
 		}
 		int fromIndex = pageNo*PAGE_SIZE;
 		int toIndex = Math.min((pageNo+1)*PAGE_SIZE, list.size());
 		fireEvent(new Event.ShowPreviews(list.subList(fromIndex, toIndex)));
-		fireEvent(new Event.EnableNextButton((pageNo+1)*PAGE_SIZE<=list.size()));
+		fireEvent(new Event.EnableNextButton((pageNo+1)*PAGE_SIZE<list.size()));
 		fireEvent(new Event.EnablePreviousButton(pageNo>0));
 	}
 	

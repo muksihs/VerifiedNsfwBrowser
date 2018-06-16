@@ -43,7 +43,7 @@ public class BrowseView extends EventBusComposite {
 	protected MaterialPanel filterTags;
 	@UiField
 	protected MaterialPanel availableTags;
-	
+
 	@UiField
 	protected MaterialButton loadFilter;
 	@UiField
@@ -56,7 +56,7 @@ public class BrowseView extends EventBusComposite {
 	protected MaterialButton previous;
 	@UiField
 	protected MaterialButton next;
-	
+
 	@UiField
 	protected MaterialButton previousBtm;
 	@UiField
@@ -75,28 +75,28 @@ public class BrowseView extends EventBusComposite {
 		fireEvent(new Event.NextPreviewSet());
 	}
 
-//	private void updateRatings(MaterialCheckBox checkbox) {
-//		// if all the checkboxes are being unchecked, reverse them all
-//		if (ratingSafe.getValue() == false && ratingQuestionable.getValue() == false
-//				&& ratingExplicit.getValue() == false) {
-//			ratingSafe.setValue(true);
-//			ratingQuestionable.setValue(true);
-//			ratingExplicit.setValue(true);
-//			checkbox.setValue(false);
-//		}
-//		Set<E621Rating> e621Ratings = new HashSet<>();
-//		if (ratingSafe.getValue()) {
-//			e621Ratings.add(E621Rating.SAFE);
-//		}
-//		if (ratingQuestionable.getValue()) {
-//			e621Ratings.add(E621Rating.QUESTIONABLE);
-//		}
-//		if (ratingExplicit.getValue()) {
-//			e621Ratings.add(E621Rating.EXPLICIT);
-//		}
-//		// update app
-//		fireEvent(new Event.SetRating(e621Ratings));
-//	}
+	// private void updateRatings(MaterialCheckBox checkbox) {
+	// // if all the checkboxes are being unchecked, reverse them all
+	// if (ratingSafe.getValue() == false && ratingQuestionable.getValue() == false
+	// && ratingExplicit.getValue() == false) {
+	// ratingSafe.setValue(true);
+	// ratingQuestionable.setValue(true);
+	// ratingExplicit.setValue(true);
+	// checkbox.setValue(false);
+	// }
+	// Set<E621Rating> e621Ratings = new HashSet<>();
+	// if (ratingSafe.getValue()) {
+	// e621Ratings.add(E621Rating.SAFE);
+	// }
+	// if (ratingQuestionable.getValue()) {
+	// e621Ratings.add(E621Rating.QUESTIONABLE);
+	// }
+	// if (ratingExplicit.getValue()) {
+	// e621Ratings.add(E621Rating.EXPLICIT);
+	// }
+	// // update app
+	// fireEvent(new Event.SetRating(e621Ratings));
+	// }
 
 	public BrowseView() {
 		initWidget(uiBinder.createAndBindUi(this));
@@ -105,14 +105,14 @@ public class BrowseView extends EventBusComposite {
 		previousBtm.addClickHandler(this::getPrevious);
 		nextBtm.addClickHandler(this::getNext);
 		mostRecent.addClickHandler((e) -> fireEvent(new Event.MostRecentSet()));
-//		ratingSafe.addClickHandler((e) -> updateRatings(ratingSafe));
-//		ratingQuestionable.addClickHandler((e) -> updateRatings(ratingQuestionable));
-//		ratingExplicit.addClickHandler((e) -> updateRatings(ratingExplicit));
-		clearFilter.addClickHandler((e)->fireEvent(new Event.ClearSearch()));
-		
-		loadFilter.addClickHandler((e)->fireEvent(new Event.LoadFilter()));
-		saveFilter.addClickHandler((e)->fireEvent(new Event.SaveFilter()));
-		
+		// ratingSafe.addClickHandler((e) -> updateRatings(ratingSafe));
+		// ratingQuestionable.addClickHandler((e) -> updateRatings(ratingQuestionable));
+		// ratingExplicit.addClickHandler((e) -> updateRatings(ratingExplicit));
+		clearFilter.addClickHandler((e) -> fireEvent(new Event.ClearSearch()));
+
+		loadFilter.addClickHandler((e) -> fireEvent(new Event.LoadFilter()));
+		saveFilter.addClickHandler((e) -> fireEvent(new Event.SaveFilter()));
+
 		loadFilter.setDisplay(Display.NONE);
 		saveFilter.setDisplay(Display.NONE);
 	}
@@ -139,7 +139,7 @@ public class BrowseView extends EventBusComposite {
 		this.previous.setEnabled(event.isEnable());
 		this.previousBtm.setEnabled(event.isEnable());
 	}
-	
+
 	@EventHandler
 	protected void onEnableNextButton(Event.EnableNextButton event) {
 		this.next.setEnabled(event.isEnable());
@@ -153,7 +153,7 @@ public class BrowseView extends EventBusComposite {
 			MaterialPanel panel = new MaterialPanel();
 			for (String tag : event.getTags()) {
 				MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-				if (tag.startsWith("-")||tag.startsWith("+")) {
+				if (tag.startsWith("-") || tag.startsWith("+")) {
 					tagLabel.setEnabled(false);
 				} else {
 					tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
@@ -199,7 +199,7 @@ public class BrowseView extends EventBusComposite {
 		MaterialButton remove = new MaterialButton("Remove From Filter: " + tag);
 		MaterialButton cancel = new MaterialButton("Cancel");
 		remove.addClickHandler((e) -> {
-			GWT.log("DO remove from filter: "+tag);
+			GWT.log("DO remove from filter: " + tag);
 			dialog.close();
 			fireEvent(new Event.RemoveFromFilter(tag));
 		});
@@ -244,15 +244,26 @@ public class BrowseView extends EventBusComposite {
 		return null;
 	}
 
+	private static final String BROKEN_IMG = "https://openclipart.org/image/800px/svg_to_png/298822/missingImageanim3.png";
+
 	@EventHandler
 	protected void showPreviews(Event.ShowPreviews event) {
-		GWT.log("EVENT PREVIEWS: "+event.getPreviews().size());
+		GWT.log("EVENT PREVIEWS: " + event.getPreviews().size());
 		Window.scrollTo(0, 0);
 		posts.clear();
 		for (BlogIndexEntry preview : event.getPreviews()) {
+			String imgHref = null;
 			List<String> images = preview.getImage();
-			if (images==null||images.isEmpty()) {
-				continue;
+			if (preview.getThumbnail() != null) {
+				imgHref = preview.getThumbnail();
+			}
+			if (imgHref == null || imgHref.trim().isEmpty()) {
+				if (preview.getImage() != null && !preview.getImage().isEmpty()) {
+					imgHref = preview.getImage().get(0);
+				}
+			}
+			if (imgHref == null || imgHref.trim().isEmpty()) {
+				imgHref = BROKEN_IMG;
 			}
 			MaterialImage img = new MaterialImage(images.get(0));
 			img.setWidth("100%");
@@ -260,46 +271,48 @@ public class BrowseView extends EventBusComposite {
 			img.setMargin(2);
 			img.setHoverable(true);
 			img.setTitle("#" + preview.getTitle() + " " + preview.getTags());
-			img.addClickHandler((e)->fireEvent(new Event.ZoomImage(preview)));
+			img.addClickHandler((e) -> fireEvent(new Event.ZoomImage(preview)));
 			MaterialButton viewTags = new MaterialButton();
 			viewTags.setWidth("45%");
 			viewTags.setMargin(2);
 			viewTags.setText("TAGS VIEW");
 			Set<String> previewTags = new TreeSet<>(preview.getTags());
-			previewTags.add("@"+preview.getAuthor());
+			previewTags.add("@" + preview.getAuthor());
 			viewTags.addClickHandler((e) -> showPostTags(previewTags));
 			MaterialButton zoomImage = new MaterialButton();
 			zoomImage.setWidth("45%");
 			zoomImage.setMargin(2);
 			zoomImage.setText("ZOOM IMAGE");
-			zoomImage.addClickHandler((e)->fireEvent(new Event.ZoomImage(preview)));
+			zoomImage.addClickHandler((e) -> fireEvent(new Event.ZoomImage(preview)));
 			MaterialLink steemPost = new MaterialLink();
-			String href="https://steemit.com/"+preview.getTags().get(0)+"/@"+preview.getAuthor()+"/"+preview.getPermlink();
+			String href = "https://steemit.com/" + preview.getTags().get(0) + "/@" + preview.getAuthor() + "/"
+					+ preview.getPermlink();
 			steemPost.setWidth("45%");
 			steemPost.setMargin(2);
 			steemPost.setTarget("_blank");
 			steemPost.setHref(href);
 			steemPost.setText("STEEMIT POST");
 			steemPost.setType(ButtonType.RAISED);
-			
+
 			MaterialLink busyPost = new MaterialLink();
-			String bhref="https://busy.org/"+preview.getTags().get(0)+"/@"+preview.getAuthor()+"/"+preview.getPermlink();
+			String bhref = "https://busy.org/" + preview.getTags().get(0) + "/@" + preview.getAuthor() + "/"
+					+ preview.getPermlink();
 			busyPost.setWidth("45%");
 			busyPost.setMargin(2);
 			busyPost.setTarget("_blank");
 			busyPost.setHref(bhref);
 			busyPost.setText("BUSY.ORG POST");
 			busyPost.setType(ButtonType.RAISED);
-			
+
 			MaterialLabel blog = new MaterialLabel();
-			blog.setText("@"+preview.getAuthor());
-//			blog.setWidth("45%");
+			blog.setText("@" + preview.getAuthor());
+			// blog.setWidth("45%");
 			blog.setMargin(2);
-			
+
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
 			title.setFontWeight(FontWeight.BOLDER);
-			
+
 			MaterialPanel panel = new MaterialPanel();
 			panel.getElement().getStyle().setVerticalAlign(VerticalAlign.TOP);
 			panel.getElement().getStyle().setDisplay(Style.Display.INLINE_BLOCK);
@@ -321,7 +334,7 @@ public class BrowseView extends EventBusComposite {
 			panel.add(busyPost);
 			posts.add(panel);
 		}
-		GWT.log("POSTS PANEL PREVIEWS: "+posts.getChildrenList().size());
+		GWT.log("POSTS PANEL PREVIEWS: " + posts.getChildrenList().size());
 	}
 
 	private void showPostTags(Set<String> previewTags) {
