@@ -6,10 +6,71 @@ import java.util.List;
 
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
+import muksihs.steem.postbrowser.shared.BlogIndex.FilteredListMode;
 import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 
 public interface Event {
 	
+	public class EnableNextButton extends GenericEvent {
+		private boolean enable;
+		public EnableNextButton(boolean enable) {
+			this.setEnable(enable);
+		}
+		public boolean isEnable() {
+			return enable;
+		}
+		public void setEnable(boolean enable) {
+			this.enable = enable;
+		}
+
+	}
+
+	public class UpdatedPreviewList extends GenericEvent {
+		private final List<BlogIndexEntry> list;
+		public UpdatedPreviewList(List<BlogIndexEntry> list) {
+			this.list=list;
+		}
+		public List<BlogIndexEntry> getList() {
+			return list;
+		}
+
+	}
+
+	public class LoadUpdatePreviewList extends GenericEvent {
+		private final List<String> haveTags;
+		private final List<String> notTags;
+		public List<String> getHaveTags() {
+			return haveTags;
+		}
+		public List<String> getNotTags() {
+			return notTags;
+		}
+		public FilteredListMode getMode() {
+			return mode;
+		}
+		private final FilteredListMode mode;
+		public LoadUpdatePreviewList() {
+			this.haveTags = new ArrayList<>();
+			this.notTags = new ArrayList<>();
+			this.mode=FilteredListMode.AND;
+		}
+		public LoadUpdatePreviewList(Collection<String> haveTags) {
+			this.haveTags = new ArrayList<>(haveTags);
+			this.notTags = new ArrayList<>();
+			this.mode=FilteredListMode.AND;
+		}
+		public LoadUpdatePreviewList(Collection<String> haveTags, Collection<String> notTags) {
+			this.haveTags = new ArrayList<>(haveTags);
+			this.notTags = new ArrayList<>(notTags);
+			this.mode=FilteredListMode.AND;
+		}
+		public LoadUpdatePreviewList(FilteredListMode mode, Collection<String> haveTags, Collection<String> notTags) {
+			this.haveTags = new ArrayList<>(haveTags);
+			this.notTags = new ArrayList<>(notTags);
+			this.mode=mode;
+		}
+	}
+
 	public class ZoomImage extends GenericEvent {
 		private final BlogIndexEntry preview;
 		public ZoomImage(BlogIndexEntry preview) {

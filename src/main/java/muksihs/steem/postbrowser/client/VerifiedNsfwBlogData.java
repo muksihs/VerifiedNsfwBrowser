@@ -97,30 +97,23 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	};
 
 	@EventHandler
+	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
+		List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);
+		for (String author : index.getDateSortedAuthors()) {
+			BlogIndexEntry entry = index.getMostRecentEntry(author);
+			if (entry.getImage() == null || entry.getImage().isEmpty()) {
+				continue;
+			}
+			list.add(entry);
+		}
+		fireEvent(new Event.UpdatedPreviewList(list));
+	}
+
+	@EventHandler
 	protected void onIndexing(Event.Indexing event) {
 		if (!event.isIndexing()) {
 			DomGlobal.console.log(" - Unique tags: " + index.getTags().size());
 			DomGlobal.console.log(" - Unique entries: " + index.getEntries().size());
-			// List<String> empty = new ArrayList<>();
-			/*
-			 * TODO: This doesn't belong in here as a response to Indexing events, should be
-			 * in response to app controller Events.
-			 */
-			List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);
-			for (String author : index.getDateSortedAuthors()) {
-				BlogIndexEntry entry = index.getMostRecentEntry(author);
-				if (entry.getImage() == null || entry.getImage().isEmpty()) {
-					continue;
-				}
-				if (!entry.getTags().contains("nsfw")) {
-					continue;
-				}
-				list.add(entry);
-				if (list.size() >= 6) {
-					fireEvent(new Event.ShowPreviews(list));
-					return;
-				}
-			}
 		}
 	}
 
@@ -136,10 +129,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		int limit = 10;
 		FollowingListCallback cb = new FollowingListCallback() {
 			private final FollowingListCallback cb = this;
+
 			@Override
 			public void onResult(String error, FollowingList result) {
 				if (error != null) {
-					fireEvent(new Event.AlertMessage("STEEM API ERROR: "+error));
+					fireEvent(new Event.AlertMessage("STEEM API ERROR: " + error));
 					new Timer() {
 						@Override
 						public void run() {
@@ -181,9 +175,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			@Override
 			public void onResult(String error, Discussions result) {
 				if (error != null) {
-					fireEvent(new Event.AlertMessage("STEEM API ERROR: "+error));
+					fireEvent(new Event.AlertMessage("STEEM API ERROR: " + error));
 				}
-				if (result!=null) {
+				if (result != null) {
 					// filter out "reblogs"
 					Iterator<Discussion> iResult = result.getList().iterator();
 					while (iResult.hasNext()) {

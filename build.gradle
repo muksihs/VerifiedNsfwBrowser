@@ -58,6 +58,10 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+tasks.withType(org.wisepersist.gradle.plugins.gwt.AbstractGwtActionTask) {
+    args "-noincremental"
+}
+
 gwt {
 	logLevel = 'INFO'
 

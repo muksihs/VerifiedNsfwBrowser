@@ -1,6 +1,8 @@
 package muksihs.steem.postbrowser.client;
 
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptException;
@@ -16,6 +18,8 @@ import elemental2.dom.DomGlobal;
 import muksihs.steem.postbrowser.client.cache.AccountCache;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
+import muksihs.steem.postbrowser.shared.BlogIndex.FilteredListMode;
+import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 import muksihs.steem.postbrowser.shared.SteemPostingInfo;
 import steem.SteemApi;
 import steem.SteemApi.UserAccountInfoList;
@@ -57,6 +61,20 @@ public class AppController implements GlobalAsyncEventBus {
 	}
 
 	protected AppController() {
+	}
+	
+	@EventHandler
+	protected void onNextPreviewSet(Event.NextPreviewSet event) {
+		pageNo++;
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+	}
+	
+	@EventHandler
+	protected void onPreviousPreviewSet(Event.PreviousPreviewSet event) {
+		if (pageNo>0) {
+			pageNo--;
+		}
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 	}
 
 	@EventHandler
@@ -239,19 +257,48 @@ public class AppController implements GlobalAsyncEventBus {
 			fireEvent(afterLoginPendingEvent);
 		}
 		afterLoginPendingEvent = null;
-		if (event.isLoggedIn()) {
-			History.fireCurrentHistoryState();
-		} else {
-			History.fireCurrentHistoryState();
-		}
+		History.fireCurrentHistoryState();
+//		if (event.isLoggedIn()) {
+//			History.fireCurrentHistoryState();
+//		} else {
+//			History.fireCurrentHistoryState();
+//		}
 	}
 	
+	private FilteredListMode filterMode=FilteredListMode.AND;
+	private final Set<String> haveTags=new TreeSet<>();
+	private final Set<String> notTags=new TreeSet<>();
+	private Timer loadUpdatePreviewList;
+	private int pageNo=0;
+	private static final int PAGE_SIZE=6;
 	@EventHandler
 	protected void onIndexing(Event.Indexing event) {
+		if (loadUpdatePreviewList!=null) {
+			loadUpdatePreviewList.cancel();
+			loadUpdatePreviewList=null;
+		}
 		if (event.isIndexing()) {
 			return;
 		}
-		//Event.ShowPreviews
-		
+		loadUpdatePreviewList=new Timer() {
+			@Override
+			public void run() {
+				fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+			}
+		};
+		loadUpdatePreviewList.schedule(250);
 	}
+	@EventHandler
+	protected void onUpdatedPreviewList(Event.UpdatedPreviewList event) {
+		List<BlogIndexEntry> list = event.getList();
+		while (pageNo*PAGE_SIZE>list.size()) {
+			pageNo--;
+		}
+		int fromIndex = pageNo*PAGE_SIZE;
+		int toIndex = Math.min((pageNo+1)*PAGE_SIZE, list.size());
+		fireEvent(new Event.ShowPreviews(list.subList(fromIndex, toIndex)));
+		fireEvent(new Event.EnableNextButton((pageNo+1)*PAGE_SIZE<=list.size()));
+		fireEvent(new Event.EnablePreviousButton(pageNo>0));
+	}
+	
 }

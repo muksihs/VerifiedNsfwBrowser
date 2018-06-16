@@ -133,9 +133,15 @@ public class BrowseView extends EventBusComposite {
 	protected MaterialCollapsible tags;
 
 	@EventHandler
-	protected void enablePreviousButton(Event.EnablePreviousButton event) {
+	protected void onEnablePreviousButton(Event.EnablePreviousButton event) {
 		this.previous.setEnabled(event.isEnable());
 		this.previousBtm.setEnabled(event.isEnable());
+	}
+	
+	@EventHandler
+	protected void onEnableNextButton(Event.EnableNextButton event) {
+		this.next.setEnabled(event.isEnable());
+		this.nextBtm.setEnabled(event.isEnable());
 	}
 
 	@EventHandler
