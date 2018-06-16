@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.Style;
+import com.google.gwt.dom.client.Style.FontWeight;
 import com.google.gwt.dom.client.Style.VerticalAlign;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -296,6 +297,7 @@ public class BrowseView extends EventBusComposite {
 			
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
+			title.setFontWeight(FontWeight.BOLDER);
 			
 			MaterialPanel panel = new MaterialPanel();
 			panel.getElement().getStyle().setVerticalAlign(VerticalAlign.TOP);
@@ -307,10 +309,10 @@ public class BrowseView extends EventBusComposite {
 			}
 			style += "max-width: 400px; max-height: 100%;";
 			panel.getElement().setAttribute("style", style);
-			panel.add(blog);
 			panel.add(img);
 			panel.add(new Br());
 			panel.add(title);
+			panel.add(blog);
 			panel.add(new Br());
 			panel.add(viewTags);
 			panel.add(zoomImage);
