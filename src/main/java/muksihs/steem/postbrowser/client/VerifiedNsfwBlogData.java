@@ -201,9 +201,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		GWT.log("#getDiscussionsByBlog: " + username);
 		int count;
 		if (Util.isSdm()) {
-			count = 2;
+			count = 5;
 		} else {
-			count = 20;
+			count = 100;
 		}
 		SteemApi.getDiscussionsByBlog(username, count, cb);
 		iList.remove();
