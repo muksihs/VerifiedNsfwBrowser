@@ -1,5 +1,6 @@
 package muksihs.steem.postbrowser.client;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -61,6 +62,45 @@ public class AppController implements GlobalAsyncEventBus {
 	}
 
 	protected AppController() {
+	}
+	
+	@EventHandler
+	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
+		this.haveTags.add(event.getTag());
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		updateActiveTagsDisplay();
+	}
+
+	
+	@EventHandler
+	protected void onAddToExcludeFilter(Event.AddToExcludeFilter event) {
+		this.notTags.add(event.getTag());
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		updateActiveTagsDisplay();
+	}
+	
+	@EventHandler
+	protected void onRemoveFromFilter(Event.RemoveFromFilter event) {
+		String tag = event.getTag();
+		if (tag.startsWith("-")||tag.startsWith("+")) {
+			tag=tag.substring(1);
+		}
+		this.haveTags.remove(tag);
+		this.notTags.remove(tag);
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		updateActiveTagsDisplay();
+	}
+
+	
+	private void updateActiveTagsDisplay() {
+		Collection<String> tags=new TreeSet<>();
+		for (String tag: haveTags) {
+			tags.add("+"+tag);
+		}
+		for (String tag: notTags) {
+			tags.add("-"+tag);
+		}
+		fireEvent(new Event.ShowFilterTags(tags));
 	}
 	
 	@EventHandler

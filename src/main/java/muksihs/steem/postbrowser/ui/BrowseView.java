@@ -199,6 +199,7 @@ public class BrowseView extends EventBusComposite {
 		MaterialButton remove = new MaterialButton("Remove From Filter: " + tag);
 		MaterialButton cancel = new MaterialButton("Cancel");
 		remove.addClickHandler((e) -> {
+			GWT.log("DO remove from filter: "+tag);
 			dialog.close();
 			fireEvent(new Event.RemoveFromFilter(tag));
 		});
