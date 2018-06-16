@@ -11,7 +11,7 @@ import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 
 public class AppEntryPoint implements EntryPoint, GlobalAsyncEventBus {
-	private static final String STEEMJS="//cdn.steemjs.com/lib/latest/steem.min.js";
+	private static final String STEEMJS="https://cdn.steemjs.com/lib/latest/steem.min.js";
 	@Override
 	public void onModuleLoad() {
 		GWT.setUncaughtExceptionHandler(handler);
