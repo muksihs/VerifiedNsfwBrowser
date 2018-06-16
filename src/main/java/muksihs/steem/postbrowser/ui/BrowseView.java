@@ -270,7 +270,7 @@ public class BrowseView extends EventBusComposite {
 			steemPost.setMargin(2);
 			steemPost.setTarget("_blank");
 			steemPost.setHref(href);
-			steemPost.setText("E621 POST");
+			steemPost.setText("STEEMIT POST");
 			steemPost.setType(ButtonType.RAISED);
 			
 			MaterialPanel panel = new MaterialPanel();

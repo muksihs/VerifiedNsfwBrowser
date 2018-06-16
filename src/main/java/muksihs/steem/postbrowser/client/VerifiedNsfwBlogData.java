@@ -9,6 +9,7 @@ import java.util.TreeSet;
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.github.nmorel.gwtjackson.client.exception.JsonDeserializationException;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.user.client.Timer;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
@@ -134,11 +135,17 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		Set<String> list = new TreeSet<>();
 		int limit = 10;
 		FollowingListCallback cb = new FollowingListCallback() {
+			private final FollowingListCallback cb = this;
 			@Override
 			public void onResult(String error, FollowingList result) {
-				if (error != null && !error.trim().isEmpty()) {
-					fireEvent(new Event.AlertMessage(error));
-					fireEvent(new Event.NsfwVerifiedAccountsLoaded(list));
+				if (error != null) {
+					fireEvent(new Event.AlertMessage("STEEM API ERROR: "+error));
+					new Timer() {
+						@Override
+						public void run() {
+							fireEvent(new Event.LoadNsfwVerifiedAccounts());
+						}
+					}.schedule(500);
 					return;
 				}
 				if (result == null) {
@@ -157,7 +164,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					return;
 				}
 				String last = followingList.get(followingList.size() - 1).getFollowing();
-				SteemApi.getFollowing("verifiednsfw", last, "blog", limit, this);
+				SteemApi.getFollowing("verifiednsfw", last, "blog", limit, cb);
 			}
 		};
 		SteemApi.getFollowing("verifiednsfw", "", "blog", limit, cb);
@@ -174,18 +181,20 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			@Override
 			public void onResult(String error, Discussions result) {
 				if (error != null) {
-					GWT.log("DiscussionsCallback#onResult-error: " + error);
+					fireEvent(new Event.AlertMessage("STEEM API ERROR: "+error));
 				}
-				// filter out "reblogs"
-				Iterator<Discussion> iResult = result.getList().iterator();
-				while (iResult.hasNext()) {
-					Discussion next = iResult.next();
-					if (next.getAuthor().equalsIgnoreCase(username)) {
-						continue;
+				if (result!=null) {
+					// filter out "reblogs"
+					Iterator<Discussion> iResult = result.getList().iterator();
+					while (iResult.hasNext()) {
+						Discussion next = iResult.next();
+						if (next.getAuthor().equalsIgnoreCase(username)) {
+							continue;
+						}
+						iResult.remove();
 					}
-					iResult.remove();
+					indexBlogEntries(result);
 				}
-				indexBlogEntries(result);
 				indexBlogs(iList);
 			}
 		};
