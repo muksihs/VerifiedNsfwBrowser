@@ -41,7 +41,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		return values;
 	}
 
-	// always create new index upon creation from deduped serialized list
+	// always build new index upon deserialization
 	@JsonCreator
 	protected static BlogIndex jsonCreate(Collection<BlogIndexEntry> entries) {
 		BlogIndex index = new BlogIndex();
@@ -52,17 +52,17 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	public static enum FilteredListMode {
 		AND, OR;
 	}
-	
+
 	public BlogIndexEntry getMostRecentEntry(String author) {
 		return mostRecentByAuthor.get(author);
 	}
-	
+
 	public List<String> getDateSortedAuthors() {
 		List<String> authors = new ArrayList<>(mostRecentByAuthor.keySet());
-		Collections.sort(authors, (a,b)->{
+		Collections.sort(authors, (a, b) -> {
 			BlogIndexEntry ea = mostRecentByAuthor.get(a);
 			BlogIndexEntry eb = mostRecentByAuthor.get(b);
-			if (ea!=null && eb!=null) {
+			if (ea != null && eb != null) {
 				if (!ea.getCreated().equals(eb.getCreated())) {
 					return -ea.getCreated().compareTo(eb.getCreated());
 				}
@@ -71,11 +71,23 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		});
 		return authors;
 	}
+	
+	public Set<String> getAvailableTags(){
+		return new TreeSet<>(byTag.keySet());
+	}
+	
+	public List<BlogIndexEntry> getFilteredList(//
+			FilteredListMode mode, //
+			Collection<String> includeTags, //
+			Collection<String> excludeTags){
+		return getFilteredList(mode, includeTags, excludeTags, false);
+	}
 
 	public List<BlogIndexEntry> getFilteredList(//
 			FilteredListMode mode, //
 			Collection<String> includeTags, //
-			Collection<String> excludeTags) {
+			Collection<String> excludeTags, //
+			boolean singleAuthors) {
 		List<BlogIndexEntry> list = new ArrayList<>();
 		if (mode == null) {
 			mode = FilteredListMode.AND;
@@ -86,6 +98,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				list.addAll(entrySets);
 			}
 		} else {
+			//Simplify logic by removing need for NULL checks.
 			ensureTagEntriesExist(includeTags);
 			Iterator<String> iTags = includeTags.iterator();
 			list.addAll(byTag.get(iTags.next()));
@@ -115,7 +128,41 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				}
 			}
 		}
+		/*
+		 * posts generally show up under more than one tag, so dedupe
+		 */
+		dedupe(list);
+		/*
+		 * Sort by date descending, author ascending
+		 */
+		Collections.sort(list);
+		if (singleAuthors) {
+			//one post per author
+			Set<String> already = new HashSet<>();
+			Iterator<BlogIndexEntry> iList = list.iterator();
+			while (iList.hasNext()) {
+				String author = iList.next().getAuthor();
+				if (already.contains(author)) {
+					iList.remove();
+					continue;
+				}
+				already.add(author);
+			}
+		}
 		return list;
+	}
+
+	private void dedupe(List<BlogIndexEntry> list) {
+		Iterator<BlogIndexEntry> iList = list.iterator(); 
+		Set<BlogIndexEntry> already = new HashSet<>();
+		while (iList.hasNext()) {
+			BlogIndexEntry next = iList.next();
+			if (already.contains(next)) {
+				iList.remove();
+				continue;
+			}
+			already.add(next);
+		}
 	}
 
 	public BlogIndex() {

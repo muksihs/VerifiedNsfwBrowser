@@ -245,4 +245,13 @@ public class AppController implements GlobalAsyncEventBus {
 			History.fireCurrentHistoryState();
 		}
 	}
+	
+	@EventHandler
+	protected void onIndexing(Event.Indexing event) {
+		if (event.isIndexing()) {
+			return;
+		}
+		//Event.ShowPreviews
+		
+	}
 }

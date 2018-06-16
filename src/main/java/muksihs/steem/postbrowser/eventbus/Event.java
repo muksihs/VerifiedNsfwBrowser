@@ -6,8 +6,122 @@ import java.util.List;
 
 import com.google.web.bindery.event.shared.binder.GenericEvent;
 
+import muksihs.steem.postbrowser.shared.BlogIndexEntry;
+
 public interface Event {
 	
+	public class ZoomImage extends GenericEvent {
+		private final BlogIndexEntry preview;
+		public ZoomImage(BlogIndexEntry preview) {
+			this.preview = preview;
+		}
+		public BlogIndexEntry getPreview() {
+			return preview;
+		}
+
+	}
+
+	public class ShowPreviews extends GenericEvent {
+		private final List<BlogIndexEntry> previews;
+		public ShowPreviews(Collection<BlogIndexEntry> previews) {
+			this.previews=new ArrayList<>(previews);
+		}
+		public List<BlogIndexEntry> getPreviews() {
+			return previews;
+		}
+	}
+
+	public class AddToExcludeFilter extends GenericEvent {
+private final String tag;
+		public AddToExcludeFilter(String tag) {
+			this.tag=tag;
+		}
+		public String getTag() {
+			return tag;
+		}
+
+	}
+
+	public class AddToIncludeFilter extends GenericEvent {
+		private final String tag;
+		public AddToIncludeFilter(String tag) {
+			this.tag=tag;
+		}
+		public String getTag() {
+			return tag;
+		}
+
+	}
+
+	public class RemoveFromFilter extends GenericEvent {
+		private final String tag;
+		public RemoveFromFilter(String tag) {
+			this.tag=tag;
+		}
+		public String getTag() {
+			return tag;
+		}
+
+	}
+
+	public class ShowFilterTags extends GenericEvent {
+		private final List<String> tags;
+		public ShowFilterTags(Collection<String> tags) {
+			this.tags=new ArrayList<>(tags);
+		}
+		public List<String> getTags() {
+			return tags;
+		}
+	}
+
+	public class ShowAvailableTags extends GenericEvent {
+		private final List<String> tags;
+		public ShowAvailableTags(Collection<String> tags) {
+			this.tags=new ArrayList<>(tags);
+		}
+		public List<String> getTags() {
+			return tags;
+		}
+	}
+
+	public class EnablePreviousButton extends GenericEvent {
+		private final boolean enable;
+		public EnablePreviousButton(boolean enable) {
+			this.enable=enable;
+		}
+		public boolean isEnable() {
+			return enable;
+		}
+	}
+
+	public class BrowseViewLoaded extends GenericEvent {
+
+	}
+
+	public class SaveFilter extends GenericEvent {
+
+	}
+
+	public class LoadFilter extends GenericEvent {
+
+	}
+
+	public class ClearSearch extends GenericEvent {
+
+	}
+
+	public class MostRecentSet extends GenericEvent {
+
+	}
+
+	public class NextPreviewSet extends GenericEvent {
+
+	}
+
+	public class PreviousPreviewSet extends GenericEvent {
+
+	}
+
 	public class Indexing extends GenericEvent {
 
 		private final boolean indexing;

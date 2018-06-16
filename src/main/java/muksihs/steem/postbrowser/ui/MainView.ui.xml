@@ -7,6 +7,6 @@
 	</ui:style>
 	<m:MaterialPanel ui:field="mainView" hideOn="NONE">
 	<x:HeaderBlock></x:HeaderBlock>
-	<m:MaterialPanel hideOn="NONE" style='text-align: left;' ui:field="display" />
+	<x:BrowseView></x:BrowseView>
 	</m:MaterialPanel>
 </ui:UiBinder> 

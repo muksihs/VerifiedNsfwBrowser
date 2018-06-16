@@ -10,6 +10,23 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class DiscussionMetadata implements HasJsonAnyGetterSetter {
 	
+	private List<String> image;
+	private List<String> links;
+	private String app;
+	public String getApp() {
+		return app;
+	}
+	public void setApp(String app) {
+		this.app = app;
+	}
+	public String getFormat() {
+		return format;
+	}
+	public void setFormat(String format) {
+		this.format = format;
+	}
+	private String format;
+	
 	private List<String> tags=new ArrayList<>();
 	private List<String> users=new ArrayList<>();
 	public List<String> getTags() {
@@ -30,5 +47,17 @@ public class DiscussionMetadata implements HasJsonAnyGetterSetter {
 	@Override
 	public Map<String, Object> anyGetterSetterMap() {
 		return _properties;
+	}
+	public List<String> getImage() {
+		return image;
+	}
+	public void setImage(List<String> image) {
+		this.image = image;
+	}
+	public List<String> getLinks() {
+		return links;
+	}
+	public void setLinks(List<String> links) {
+		this.links = links;
 	}
 }

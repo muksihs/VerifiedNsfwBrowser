@@ -61,7 +61,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	protected VerifiedNsfwBlogData() {
 		index = new BlogIndex();
 	}
-	
+
 	protected void indexBlogEntries(Discussions result) {
 		if (result == null) {
 			return;
@@ -72,6 +72,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			entry.setAuthor(discussion.getAuthor());
 			entry.setCreated(discussion.getCreated());
 			entry.setPermlink(discussion.getPermlink());
+			entry.setTitle(discussion.getTitle());
 			parseMetadata: try {
 				DiscussionMetadata metadata = SteemApi.discussionMetadataMapper.read(discussion.getJsonMetadata());
 				if (metadata == null) {
@@ -80,8 +81,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				if (metadata.getTags() == null) {
 					break parseMetadata;
 				}
+				if (!metadata.getTags().contains("nsfw") && !metadata.getTags().contains("NSFW")) {
+					GWT.log("NOT NSFW post skipped: " + entry.getAuthor() + ", " + entry.getPermlink());
+					continue;
+				}
 				entry.setTags(metadata.getTags());
+				entry.setImage(metadata.getImage());
 			} catch (JsonDeserializationException e) {
+				GWT.log(e.getMessage(), e);
 			}
 			entries.add(entry);
 		}
@@ -90,10 +97,25 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onIndexing(Event.Indexing event) {
-		DomGlobal.console.log("Indexing: " + String.valueOf(event.isIndexing()));
 		if (!event.isIndexing()) {
 			DomGlobal.console.log(" - Unique tags: " + index.getTags().size());
 			DomGlobal.console.log(" - Unique entries: " + index.getEntries().size());
+//			List<String> empty = new ArrayList<>();
+			List<BlogIndexEntry> list = new ArrayList<>();//index.getFilteredList(FilteredListMode.AND, empty, empty);
+			for (String author : index.getDateSortedAuthors()) {
+				BlogIndexEntry entry = index.getMostRecentEntry(author);
+				if (entry.getImage() == null || entry.getImage().isEmpty()) {
+					continue;
+				}
+				if (!entry.getTags().contains("nsfw")) {
+					continue;
+				}
+				list.add(entry);
+				if (list.size() >= 6) {
+					fireEvent(new Event.ShowPreviews(list));
+					return;
+				}
+			}
 		}
 	}
 
@@ -110,7 +132,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		FollowingListCallback cb = new FollowingListCallback() {
 			@Override
 			public void onResult(String error, FollowingList result) {
-				if (error!=null && !error.trim().isEmpty()) {
+				if (error != null && !error.trim().isEmpty()) {
 					fireEvent(new Event.AlertMessage(error));
 					fireEvent(new Event.NsfwVerifiedAccountsLoaded(list));
 					return;
@@ -130,7 +152,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					fireEvent(new Event.NsfwVerifiedAccountsLoaded(list));
 					return;
 				}
-				String last = followingList.get(followingList.size()-1).getFollowing();
+				String last = followingList.get(followingList.size() - 1).getFollowing();
 				SteemApi.getFollowing("verifiednsfw", last, "blog", limit, this);
 			}
 		};
@@ -142,6 +164,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			fireEvent(new Event.ShowLoading(false));
 			return;
 		}
+		final String username = iList.next();
 		fireEvent(new Event.ShowLoading(true));
 		DiscussionsCallback cb = new DiscussionsCallback() {
 			@Override
@@ -149,17 +172,25 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				if (error != null) {
 					GWT.log("DiscussionsCallback#onResult-error: " + error);
 				}
+				// filter out "reblogs"
+				Iterator<Discussion> iResult = result.getList().iterator();
+				while (iResult.hasNext()) {
+					Discussion next = iResult.next();
+					if (next.getAuthor().equalsIgnoreCase(username)) {
+						continue;
+					}
+					iResult.remove();
+				}
 				indexBlogEntries(result);
 				indexBlogs(iList);
 			}
 		};
-		final String username = iList.next();
 		GWT.log("#getDiscussionsByBlog: " + username);
 		int count;
 		if (Util.isSdm()) {
-			count = 3;
+			count = 2;
 		} else {
-			count = 50;
+			count = 20;
 		}
 		SteemApi.getDiscussionsByBlog(username, count, cb);
 		iList.remove();

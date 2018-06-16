@@ -1,13 +1,16 @@
 package muksihs.steem.postbrowser.shared;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	
+	private String title;
 	private String author;
 	private Date created;
 	private String permlink;
+	private List<String> image;
 	private List<String> tags;
 	
 	/**
@@ -121,6 +124,18 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 		this.permlink = permlink;
 	}
 	public void setTags(List<String> tags) {
-		this.tags = tags;
+		this.tags = new ArrayList<>(tags);
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public List<String> getImage() {
+		return image;
+	}
+	public void setImage(List<String> image) {
+		this.image = image;
 	}
 }
