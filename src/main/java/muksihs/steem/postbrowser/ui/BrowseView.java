@@ -25,6 +25,7 @@ import gwt.material.design.client.ui.MaterialAnchorButton;
 import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialCollapsible;
 import gwt.material.design.client.ui.MaterialImage;
+import gwt.material.design.client.ui.MaterialLabel;
 import gwt.material.design.client.ui.MaterialLink;
 import gwt.material.design.client.ui.MaterialModal;
 import gwt.material.design.client.ui.MaterialPanel;
@@ -288,6 +289,14 @@ public class BrowseView extends EventBusComposite {
 			busyPost.setText("BUSY.ORG POST");
 			busyPost.setType(ButtonType.RAISED);
 			
+			MaterialLabel blog = new MaterialLabel();
+			blog.setText("@"+preview.getAuthor());
+//			blog.setWidth("45%");
+			blog.setMargin(2);
+			
+			MaterialLabel title = new MaterialLabel(preview.getTitle());
+			title.setMargin(2);
+			
 			MaterialPanel panel = new MaterialPanel();
 			panel.getElement().getStyle().setVerticalAlign(VerticalAlign.TOP);
 			panel.getElement().getStyle().setDisplay(Style.Display.INLINE_BLOCK);
@@ -298,7 +307,10 @@ public class BrowseView extends EventBusComposite {
 			}
 			style += "max-width: 400px; max-height: 100%;";
 			panel.getElement().setAttribute("style", style);
+			panel.add(blog);
 			panel.add(img);
+			panel.add(new Br());
+			panel.add(title);
 			panel.add(new Br());
 			panel.add(viewTags);
 			panel.add(zoomImage);
