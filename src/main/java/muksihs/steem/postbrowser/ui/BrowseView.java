@@ -253,11 +253,11 @@ public class BrowseView extends EventBusComposite {
 		posts.clear();
 		for (BlogIndexEntry preview : event.getPreviews()) {
 			String imgHref = null;
-			List<String> images = preview.getImage();
 			if (preview.getThumbnail() != null) {
 				imgHref = preview.getThumbnail();
 			}
 			if (imgHref == null || imgHref.trim().isEmpty()) {
+				List<String> images = preview.getImage();
 				if (preview.getImage() != null && !preview.getImage().isEmpty()) {
 					imgHref = preview.getImage().get(0);
 				}
@@ -265,7 +265,7 @@ public class BrowseView extends EventBusComposite {
 			if (imgHref == null || imgHref.trim().isEmpty()) {
 				imgHref = BROKEN_IMG;
 			}
-			MaterialImage img = new MaterialImage(images.get(0));
+			MaterialImage img = new MaterialImage(imgHref);
 			img.setWidth("100%");
 			img.setMaxWidth("100%");
 			img.setMargin(2);
