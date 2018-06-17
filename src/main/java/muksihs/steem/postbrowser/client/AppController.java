@@ -311,6 +311,7 @@ public class AppController implements GlobalAsyncEventBus {
 	private final Set<String> notTags=new TreeSet<>();
 	private Timer loadUpdatePreviewList;
 	private int pageNo=0;
+	private BlogIndexEntry zoomPreview;
 	private static final int PAGE_SIZE=6;
 	@EventHandler
 	protected void onIndexing(Event.Indexing event) {
@@ -341,5 +342,25 @@ public class AppController implements GlobalAsyncEventBus {
 		fireEvent(new Event.EnableNextButton((pageNo+1)*PAGE_SIZE<list.size()));
 		fireEvent(new Event.EnablePreviousButton(pageNo>0));
 	}
-	
+	@EventHandler
+	protected void onMostRecentSet(Event.MostRecentSet event) {
+		pageNo=0;
+		fireEvent(new Event.LoadUpdatePreviewList());
+	}
+	@EventHandler
+	protected void onClearSearch(Event.ClearSearch event) {
+		haveTags.clear();
+		notTags.clear();
+		fireEvent(new Event.LoadUpdatePreviewList());
+	}
+	@EventHandler
+	protected void zoomImage(Event.ZoomImage event) {
+		this.zoomPreview = event.getPreview();
+		fireEvent(new Event.ImageModal());
+	}
+	@EventHandler
+	protected void getModalImage(Event.GetModalImage event) {
+		fireEvent(new Event.SetModalImage(zoomPreview));
+	}
+
 }

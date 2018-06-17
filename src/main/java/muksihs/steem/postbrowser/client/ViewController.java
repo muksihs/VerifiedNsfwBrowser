@@ -14,6 +14,7 @@ import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.Event.ShowMainView;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 import muksihs.steem.postbrowser.ui.AboutUi;
+import muksihs.steem.postbrowser.ui.ImageModalUi;
 import muksihs.steem.postbrowser.ui.LoginUi;
 import muksihs.steem.postbrowser.ui.MainView;
 
@@ -97,5 +98,12 @@ public class ViewController implements GlobalAsyncEventBus {
 		modal.add(btnOk);
 		RootPanel.get().add(modal);
 		modal.open();
+	}
+	
+	@EventHandler
+	protected void showImageModal(Event.ImageModal event) {
+		ImageModalUi ui = new ImageModalUi();
+		RootPanel.get().add(ui);
+		ui.open();
 	}
 }

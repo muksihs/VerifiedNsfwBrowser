@@ -11,6 +11,28 @@ import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 
 public interface Event {
 	
+	public class SetModalImage extends GenericEvent {
+		
+		private final BlogIndexEntry zoomPreview;
+
+		public SetModalImage(BlogIndexEntry zoomPreview) {
+			this.zoomPreview=zoomPreview;
+		}
+
+		public BlogIndexEntry getZoomPreview() {
+			return zoomPreview;
+		}
+
+	}
+
+	public class ImageModal extends GenericEvent {
+
+	}
+
+	public class GetModalImage extends GenericEvent {
+
+	}
+
 	public class EnableNextButton extends GenericEvent {
 		private boolean enable;
 		public EnableNextButton(boolean enable) {

@@ -241,9 +241,9 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	}
 
 	public Set<String> getTags() {
-		return new HashSet<>(byTag.keySet());
+		return new TreeSet<>(byTag.keySet());
 	}
-
+	
 	public List<BlogIndexEntry> getEntries() {
 		return new ArrayList<>(jsonValue());
 	}

@@ -164,6 +164,12 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			List<BlogIndexEntry> list=index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
 			//TODO: update available tags based on filtered posts
 			fireEvent(new Event.UpdatedPreviewList(list));
+			Set<String> availableTags = new TreeSet<>();
+			for (BlogIndexEntry preview:list) {
+				availableTags.addAll(preview.getTags());
+				availableTags.add("@"+preview.getAuthor());
+				fireEvent(new Event.SetAvailableTags(availableTags));
+			}
 			return;
 		}
 		List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);
@@ -171,6 +177,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			BlogIndexEntry entry = index.getMostRecentEntry(author);
 			list.add(entry);
 		}
+		fireEvent(new Event.SetAvailableTags(index.getTags()));
 		fireEvent(new Event.UpdatedPreviewList(list));
 	}
 

@@ -296,10 +296,11 @@ public class BrowseView extends EventBusComposite {
 			busyPost.setText("BUSY.ORG POST");
 			busyPost.setType(ButtonType.RAISED);
 
-			MaterialLabel blog = new MaterialLabel();
-			blog.setText("@" + preview.getAuthor());
-			// blog.setWidth("45%");
-			blog.setMargin(2);
+			MaterialButton channel = new MaterialButton();
+			channel.setText("@" + preview.getAuthor());
+			channel.setWidth("45%");
+			channel.setMargin(2);
+			channel.addClickHandler((e)->fireEvent(new Event.AddToIncludeFilter("@"+preview.getAuthor())));
 
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
@@ -318,7 +319,7 @@ public class BrowseView extends EventBusComposite {
 			panel.add(img);
 			panel.add(new Br());
 			panel.add(title);
-			panel.add(blog);
+			panel.add(channel);
 			panel.add(new Br());
 			panel.add(viewTags);
 			panel.add(zoomImage);
