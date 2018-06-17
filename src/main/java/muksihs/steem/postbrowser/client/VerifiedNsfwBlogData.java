@@ -161,14 +161,22 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
 		if (!event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty()) {
+			GWT.log("Filtered view (have tags): "+event.getHaveTags());
+			GWT.log("Filtered view (not tags): "+event.getNotTags());
 			List<BlogIndexEntry> list=index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
+			fireEvent(new Event.UpdatedPreviewList(list));
 			Set<String> availableTags = new TreeSet<>();
 			for (BlogIndexEntry preview:list) {
-				availableTags.addAll(preview.getTags());
-				availableTags.add("@"+preview.getAuthor());
+				List<String> tags = preview.getTags();
+				if (tags!=null) {
+					availableTags.addAll(tags);
+				}
+				String author = preview.getAuthor();
+				if (author!=null) {
+					availableTags.add("@"+author);
+				}
 			}
 			fireEvent(new Event.SetAvailableTags(availableTags));
-			fireEvent(new Event.UpdatedPreviewList(list));
 			return;
 		}
 		List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);
@@ -176,8 +184,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			BlogIndexEntry entry = index.getMostRecentEntry(author);
 			list.add(entry);
 		}
-		fireEvent(new Event.SetAvailableTags(index.getTags()));
 		fireEvent(new Event.UpdatedPreviewList(list));
+		fireEvent(new Event.SetAvailableTags(index.getTags()));
 	}
 
 	@EventHandler

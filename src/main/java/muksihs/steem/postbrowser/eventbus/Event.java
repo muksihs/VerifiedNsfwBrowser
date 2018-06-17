@@ -71,11 +71,6 @@ public interface Event {
 			return mode;
 		}
 		private final FilteredListMode mode;
-		public LoadUpdatePreviewList(Collection<String> haveTags, Collection<String> notTags) {
-			this.haveTags = new ArrayList<>(haveTags);
-			this.notTags = new ArrayList<>(notTags);
-			this.mode=FilteredListMode.AND;
-		}
 		public LoadUpdatePreviewList(FilteredListMode mode, Collection<String> haveTags, Collection<String> notTags) {
 			this.haveTags = new ArrayList<>(haveTags);
 			this.notTags = new ArrayList<>(notTags);

@@ -68,17 +68,16 @@ public class AppController implements GlobalAsyncEventBus {
 	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
 		this.haveTags.add(event.getTag());
 		this.notTags.remove(event.getTag());
-		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 	}
-
 	
 	@EventHandler
 	protected void onAddToExcludeFilter(Event.AddToExcludeFilter event) {
 		this.notTags.add(event.getTag());
 		this.haveTags.remove(event.getTag());
-		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 	}
 	
 	@EventHandler
@@ -93,7 +92,6 @@ public class AppController implements GlobalAsyncEventBus {
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
 	}
-
 	
 	private void updateActiveTagsDisplay() {
 		Collection<String> tags=new TreeSet<>();
