@@ -27,6 +27,9 @@ unzip "$WAR".war -d "$WAR"
 rm -rf "$WAR"/META-INF
 rm -rf "$WAR"/WEB-INF
 
+#always make sure the index.html is reloaded on a republish
+touch "$WAR/index.html"
+
 #publish
 rsync -arzv --human-readable --progress --delete-after "$WAR/" "muksihs@muksihs.com:/var/www/html/$WAR/"
 
