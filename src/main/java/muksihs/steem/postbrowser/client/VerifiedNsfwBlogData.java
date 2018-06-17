@@ -30,7 +30,7 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-	private static final String DEBUG_AUTHOR = "seamann";
+//	private static final String DEBUG_AUTHOR = "seamann";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
 

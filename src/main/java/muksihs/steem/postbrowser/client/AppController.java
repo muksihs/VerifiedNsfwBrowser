@@ -328,7 +328,7 @@ public class AppController implements GlobalAsyncEventBus {
 				fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 			}
 		};
-		loadUpdatePreviewList.schedule(250);
+		loadUpdatePreviewList.schedule(500);
 	}
 	@EventHandler
 	protected void onUpdatedPreviewList(Event.UpdatedPreviewList event) {
@@ -345,13 +345,13 @@ public class AppController implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onMostRecentSet(Event.MostRecentSet event) {
 		pageNo=0;
-		fireEvent(new Event.LoadUpdatePreviewList());
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 	}
 	@EventHandler
 	protected void onClearSearch(Event.ClearSearch event) {
 		haveTags.clear();
 		notTags.clear();
-		fireEvent(new Event.LoadUpdatePreviewList());
+		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 	}
 	@EventHandler
 	protected void zoomImage(Event.ZoomImage event) {
