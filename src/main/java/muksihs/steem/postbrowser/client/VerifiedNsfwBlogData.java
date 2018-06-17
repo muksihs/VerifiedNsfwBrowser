@@ -162,13 +162,13 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
 		if (!event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty()) {
 			List<BlogIndexEntry> list=index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
-			fireEvent(new Event.UpdatedPreviewList(list));
 			Set<String> availableTags = new TreeSet<>();
 			for (BlogIndexEntry preview:list) {
 				availableTags.addAll(preview.getTags());
 				availableTags.add("@"+preview.getAuthor());
 			}
 			fireEvent(new Event.SetAvailableTags(availableTags));
+			fireEvent(new Event.UpdatedPreviewList(list));
 			return;
 		}
 		List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);

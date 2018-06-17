@@ -67,6 +67,7 @@ public class AppController implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
 		this.haveTags.add(event.getTag());
+		this.notTags.remove(event.getTag());
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
 	}
@@ -75,6 +76,7 @@ public class AppController implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onAddToExcludeFilter(Event.AddToExcludeFilter event) {
 		this.notTags.add(event.getTag());
+		this.haveTags.remove(event.getTag());
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
 	}
