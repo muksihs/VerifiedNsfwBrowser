@@ -13,6 +13,15 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	private String thumbnail;
 	private List<String> image;
 	private List<String> tags;
+	private List<String> combinedImages;
+	
+	public void setCombinedImages(List<String> combinedImages) {
+		this.combinedImages = combinedImages;
+	}
+
+	public BlogIndexEntry() {
+		combinedImages = new ArrayList<>();
+	}
 	
 	/**
 	 * Date descending, author ascending.
@@ -144,5 +153,26 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	}
 	public void setThumbnail(String thumbnail) {
 		this.thumbnail = thumbnail;
+	}
+	public List<String> getCombinedImages() {
+		return combinedImages==null?new ArrayList<>():combinedImages;
+	}
+
+	public void addToCombinedImages(List<String> images) {
+		if (images==null||images.isEmpty()) {
+			return;
+		}
+		for (String image: images) {
+			addToCombinedImages(image);
+		}
+	}
+
+	public void addToCombinedImages(String image) {
+		if (image==null||image.trim().isEmpty()) {
+			return;
+		}
+		if (!combinedImages.contains(image)) {
+			combinedImages.add(image);
+		}
 	}
 }

@@ -1,6 +1,5 @@
 package muksihs.steem.postbrowser.ui;
 
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -248,23 +247,16 @@ public class BrowseView extends EventBusComposite {
 
 	@EventHandler
 	protected void showPreviews(Event.ShowPreviews event) {
-		GWT.log("EVENT PREVIEWS: " + event.getPreviews().size());
 		Window.scrollTo(0, 0);
 		posts.clear();
 		for (BlogIndexEntry preview : event.getPreviews()) {
 			String imgHref = null;
-			if (preview.getThumbnail() != null) {
-				imgHref = preview.getThumbnail();
-			}
-			if (imgHref == null || imgHref.trim().isEmpty()) {
-				List<String> images = preview.getImage();
-				if (preview.getImage() != null && !preview.getImage().isEmpty()) {
-					imgHref = preview.getImage().get(0);
-				}
-			}
-			if (imgHref == null || imgHref.trim().isEmpty()) {
+			if (preview.getCombinedImages()==null || preview.getCombinedImages().isEmpty()) {
 				imgHref = BROKEN_IMG;
+			} else {
+				imgHref = preview.getCombinedImages().get(0);
 			}
+			
 			MaterialImage img = new MaterialImage(imgHref);
 			img.setWidth("100%");
 			img.setMaxWidth("100%");
@@ -334,7 +326,6 @@ public class BrowseView extends EventBusComposite {
 			panel.add(busyPost);
 			posts.add(panel);
 		}
-		GWT.log("POSTS PANEL PREVIEWS: " + posts.getChildrenList().size());
 	}
 
 	private void showPostTags(Set<String> previewTags) {

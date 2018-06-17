@@ -17,6 +17,9 @@
 	<source path='ui' />
 	<source path="eventbus"/>
 	
+	
+	<!-- regexp -->
+<!-- 	<inherits name='regexodus'/> -->
 	<!-- eventbinder -->
 	<inherits name='com.google.web.bindery.event.EventBinder'/>
 	

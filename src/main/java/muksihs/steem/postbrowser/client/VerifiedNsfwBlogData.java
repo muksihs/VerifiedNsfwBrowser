@@ -1,6 +1,7 @@
 package muksihs.steem.postbrowser.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
+	private static final String DEBUG_AUTHOR = "seamann";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
 
@@ -82,15 +84,74 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				if (metadata.getTags() == null) {
 					break parseMetadata;
 				}
-				if (!metadata.getTags().contains("nsfw") && !metadata.getTags().contains("NSFW")) {
-					GWT.log("NOT NSFW post skipped: " + entry.getAuthor() + ", " + entry.getPermlink());
-					continue;
-				}
+//				if (!metadata.getTags().contains("nsfw") && !metadata.getTags().contains("NSFW")) {
+//					GWT.log("NOT NSFW post skipped: " + entry.getAuthor() + ", " + entry.getPermlink());
+//					continue;
+//				}
 				entry.setTags(metadata.getTags());
 				entry.setImage(metadata.getImage());
 				entry.setThumbnail(metadata.getThumbnail());
+				entry.addToCombinedImages(metadata.getThumbnail());
+				entry.addToCombinedImages(metadata.getImage());
 			} catch (JsonDeserializationException e) {
 				GWT.log(e.getMessage(), e);
+			}
+			final String body = discussion.getBody();
+			
+			//add body extracted images next (Markdown)
+			//![wo3n2ln78t.jpg](https://img.esteem.ws/wo3n2ln78t.jpg)
+			//![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+			if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
+				String tmp = body;
+				//strip all but MD image tags
+				tmp = tmp.replaceAll("[^\\)]+!", "");
+				tmp = tmp.replaceAll("\\)[^!]+", "");
+				
+				//convert all to bare urls
+				tmp = tmp.replaceAll("\\[[^\\]]+\\]", "");
+				tmp = tmp.replaceAll("\\(([^\\)\\s]+)[^\\)]*", "\n$1\n");
+				
+				//remove any remaining and hence invalid paren sets
+				tmp = tmp.replaceAll("\\([^\\)]*\\)", "");
+				
+				//strip possible single or double surrounding quotes
+				tmp = ("\n"+tmp+"\n").replaceAll("\n['\"]+", "");
+				tmp = ("\n"+tmp+"\n").replaceAll("['\"]+\n", "");
+				//cleanup removing blank lines
+				tmp = tmp.replaceAll("\n+", "\n");
+				//split on inner "\n" and add to combined images
+				String[] tmpUrls = tmp.trim().split("\n");
+				if (tmpUrls!=null&&tmpUrls.length>0) {
+					entry.addToCombinedImages(Arrays.asList(tmpUrls));
+				}
+			}
+
+			//add body extracted images last (HTML <img ...>
+			
+			if (body.matches("[\\s\\S]*<[iI][mM][gG][^>]+>[\\s\\S]*")) {
+				//strip all but tags
+				String tmp = body;
+				tmp = tmp.replaceAll("[^>]+<", "<");
+				tmp = tmp.replaceAll(">[^<]+", ">");
+				//reduce down to only img tags
+				tmp = tmp.replaceAll("(<>)", "");
+				tmp = tmp.replaceAll("(<[^iI][^>]*>)", "");
+				tmp = tmp.replaceAll("(<[iI][^mM][^>]*>)", "");
+				tmp = tmp.replaceAll("(<[iI][mM][^gG]\\s+[^>]*>)", "");
+				//convert all img tags with a src component to bare urls
+				tmp = tmp.replaceAll("<[^>]+?src[ \n]*=[ \n]*([^> \n]+)[^>]*>", "\n$1\n");
+				//remove any remaining and hence invalid tags
+				tmp = tmp.replaceAll("(<[^>]*>)", "");
+				//strip possible single or double surrounding quotes
+				tmp = ("\n"+tmp+"\n").replaceAll("\n['\"]+", "");
+				tmp = ("\n"+tmp+"\n").replaceAll("['\"]+\n", "");
+				//cleanup removing blank lines
+				tmp = tmp.replaceAll("\n+", "\n");
+				//split on inner "\n" and add to combined images
+				String[] tmpUrls = tmp.trim().split("\n");
+				if (tmpUrls!=null&&tmpUrls.length>0) {
+					entry.addToCombinedImages(Arrays.asList(tmpUrls));
+				}
 			}
 			entries.add(entry);
 		}
