@@ -169,9 +169,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		List<BlogIndexEntry> list = new ArrayList<>();// index.getFilteredList(FilteredListMode.AND, empty, empty);
 		for (String author : index.getDateSortedAuthors()) {
 			BlogIndexEntry entry = index.getMostRecentEntry(author);
-			if (entry.getImage() == null || entry.getImage().isEmpty()) {
-				continue;
-			}
 			list.add(entry);
 		}
 		fireEvent(new Event.UpdatedPreviewList(list));

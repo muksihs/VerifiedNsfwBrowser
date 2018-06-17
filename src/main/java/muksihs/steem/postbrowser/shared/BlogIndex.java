@@ -117,14 +117,14 @@ public class BlogIndex implements GlobalAsyncEventBus {
 					break;
 				}
 			}
-			if (excludeTags != null && !excludeTags.isEmpty()) {
-				Iterator<String> iExclude = excludeTags.iterator();
-				excludeTagLoop: while (iExclude.hasNext()) {
-					String tag = iExclude.next();
-					list.removeAll(byTag.get(tag));
-					if (list.isEmpty()) {
-						break excludeTagLoop;
-					}
+		}
+		if (excludeTags != null && !excludeTags.isEmpty()) {
+			Iterator<String> iExclude = excludeTags.iterator();
+			excludeTagLoop: while (iExclude.hasNext()) {
+				String tag = iExclude.next();
+				list.removeAll(byTag.get(tag));
+				if (list.isEmpty()) {
+					break excludeTagLoop;
 				}
 			}
 		}
