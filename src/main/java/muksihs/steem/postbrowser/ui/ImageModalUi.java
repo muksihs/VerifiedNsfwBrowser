@@ -10,6 +10,7 @@ import com.google.web.bindery.event.shared.binder.EventHandler;
 import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialImage;
 import gwt.material.design.client.ui.MaterialModal;
+import muksihs.steem.postbrowser.client.Util;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.EventBusComposite;
 import muksihs.steem.postbrowser.shared.BlogIndexEntry;
@@ -20,7 +21,7 @@ public class ImageModalUi extends EventBusComposite {
 
 	interface ImageModalUiUiBinder extends UiBinder<Widget, ImageModalUi> {
 	}
-	
+
 	@UiField
 	protected MaterialModal modal;
 	@UiField
@@ -31,28 +32,41 @@ public class ImageModalUi extends EventBusComposite {
 
 	public ImageModalUi() {
 		initWidget(uiBinder.createAndBindUi(this));
-		modal.addCloseHandler((e)->this.removeFromParent());
-		btnDismiss.addClickHandler((e)->modal.close());
-		image.addClickHandler((e)->modal.close());
+		modal.addCloseHandler((e) -> this.removeFromParent());
+		btnDismiss.addClickHandler((e) -> modal.close());
+		image.addClickHandler((e) -> modal.close());
 	}
-	
+
 	@EventHandler
 	public void setZoomImage(Event.SetModalImage event) {
 		this.preview = event.getZoomPreview();
-		if (preview.getCombinedImages()==null||preview.getCombinedImages().isEmpty()) {
+		if (preview.getCombinedImages() == null || preview.getCombinedImages().isEmpty()) {
 			modal.close();
 			return;
 		}
-		String fullImageUrl = preview.getCombinedImages().get(0);
+		final String origImageUrl = preview.getCombinedImages().get(0);
+		String fullImageUrl = origImageUrl;
+		if (!fullImageUrl.contains(Util.STEEMIMAGES + Util.NO_SCALE)) {
+			fullImageUrl = Util.STEEMIMAGES + Util.NO_SCALE + fullImageUrl;
+		}
 		image.setUrl(fullImageUrl);
+		image.addErrorHandler((e) -> {
+			if (image.getUrl().equals(origImageUrl)) {
+				image.setUrl(Util.BROKEN_IMG);
+			} else {
+				image.setUrl(origImageUrl);
+			}
+		});
 	}
-	
+
 	public void open() {
 		modal.open();
 		fireEvent(new Event.GetModalImage());
 	}
-	
-	interface MyEventBinder extends EventBinder<ImageModalUi>{}
+
+	interface MyEventBinder extends EventBinder<ImageModalUi> {
+	}
+
 	@Override
 	protected <T extends EventBinder<EventBusComposite>> T getEventBinder() {
 		return GWT.create(MyEventBinder.class);

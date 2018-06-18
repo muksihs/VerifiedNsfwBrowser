@@ -30,6 +30,7 @@ import gwt.material.design.client.ui.MaterialLink;
 import gwt.material.design.client.ui.MaterialModal;
 import gwt.material.design.client.ui.MaterialPanel;
 import gwt.material.design.client.ui.html.Br;
+import muksihs.steem.postbrowser.client.Util;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.EventBusComposite;
 import muksihs.steem.postbrowser.shared.BlogIndexEntry;
@@ -74,29 +75,6 @@ public class BrowseView extends EventBusComposite {
 		fireEvent(new Event.NextPreviewSet());
 	}
 
-	// private void updateRatings(MaterialCheckBox checkbox) {
-	// // if all the checkboxes are being unchecked, reverse them all
-	// if (ratingSafe.getValue() == false && ratingQuestionable.getValue() == false
-	// && ratingExplicit.getValue() == false) {
-	// ratingSafe.setValue(true);
-	// ratingQuestionable.setValue(true);
-	// ratingExplicit.setValue(true);
-	// checkbox.setValue(false);
-	// }
-	// Set<E621Rating> e621Ratings = new HashSet<>();
-	// if (ratingSafe.getValue()) {
-	// e621Ratings.add(E621Rating.SAFE);
-	// }
-	// if (ratingQuestionable.getValue()) {
-	// e621Ratings.add(E621Rating.QUESTIONABLE);
-	// }
-	// if (ratingExplicit.getValue()) {
-	// e621Ratings.add(E621Rating.EXPLICIT);
-	// }
-	// // update app
-	// fireEvent(new Event.SetRating(e621Ratings));
-	// }
-
 	public BrowseView() {
 		initWidget(uiBinder.createAndBindUi(this));
 		previous.addClickHandler(this::getPrevious);
@@ -104,9 +82,6 @@ public class BrowseView extends EventBusComposite {
 		previousBtm.addClickHandler(this::getPrevious);
 		nextBtm.addClickHandler(this::getNext);
 		mostRecent.addClickHandler((e) -> fireEvent(new Event.MostRecentSet()));
-		// ratingSafe.addClickHandler((e) -> updateRatings(ratingSafe));
-		// ratingQuestionable.addClickHandler((e) -> updateRatings(ratingQuestionable));
-		// ratingExplicit.addClickHandler((e) -> updateRatings(ratingExplicit));
 		clearFilter.addClickHandler((e) -> fireEvent(new Event.ClearSearch()));
 
 		loadFilter.addClickHandler((e) -> fireEvent(new Event.LoadFilter()));
@@ -243,21 +218,33 @@ public class BrowseView extends EventBusComposite {
 		return null;
 	}
 
-	private static final String BROKEN_IMG = "https://openclipart.org/image/800px/svg_to_png/298822/missingImageanim3.png";
-
 	@EventHandler
 	protected void showPreviews(Event.ShowPreviews event) {
 		Window.scrollTo(0, 0);
 		posts.clear();
 		for (BlogIndexEntry preview : event.getPreviews()) {
-			String imgHref = null;
-			if (preview.getCombinedImages()==null || preview.getCombinedImages().isEmpty()) {
-				imgHref = BROKEN_IMG;
+			final String imgHref;
+			if (preview.getCombinedImages() == null || preview.getCombinedImages().isEmpty()) {
+				imgHref = Util.BROKEN_IMG;
 			} else {
 				imgHref = preview.getCombinedImages().get(0);
 			}
-			
-			MaterialImage img = new MaterialImage(imgHref);
+			String steemImgHref = imgHref;
+			if (!steemImgHref.contains(Util.STEEMIMAGES)) {
+				steemImgHref = Util.STEEMIMAGES + Util.BROWSE_SCALE + imgHref;
+			}
+			if (steemImgHref.contains(Util.STEEMIMAGES + Util.NO_SCALE)) {
+				steemImgHref = steemImgHref.replace(Util.STEEMIMAGES + Util.NO_SCALE,
+						Util.STEEMIMAGES + Util.BROWSE_SCALE);
+			}
+			MaterialImage img = new MaterialImage(steemImgHref);
+			img.addErrorHandler((e) -> {
+				if (img.getUrl().equals(imgHref)) {
+					img.setUrl(Util.BROKEN_IMG);
+				} else {
+					img.setUrl(imgHref);
+				}
+			});
 			img.setWidth("100%");
 			img.setMaxWidth("100%");
 			img.setMargin(2);
@@ -276,31 +263,44 @@ public class BrowseView extends EventBusComposite {
 			zoomImage.setMargin(2);
 			zoomImage.setText("ZOOM IMAGE");
 			zoomImage.addClickHandler((e) -> fireEvent(new Event.ZoomImage(preview)));
-			MaterialLink steemPost = new MaterialLink();
+
+			MaterialLink postLink = new MaterialLink();
 			String href = "https://steemit.com/" + preview.getTags().get(0) + "/@" + preview.getAuthor() + "/"
 					+ preview.getPermlink();
-			steemPost.setWidth("45%");
-			steemPost.setMargin(2);
-			steemPost.setTarget("_blank");
-			steemPost.setHref(href);
-			steemPost.setText("STEEMIT POST");
-			steemPost.setType(ButtonType.RAISED);
+			postLink.setWidth("45%");
+			postLink.setMargin(2);
+			postLink.setTarget("_blank");
+			postLink.setHref(href);
+			postLink.setText("STEEMIT POST");
+			postLink.setType(ButtonType.RAISED);
 
-			MaterialLink busyPost = new MaterialLink();
-			String bhref = "https://busy.org/" + preview.getTags().get(0) + "/@" + preview.getAuthor() + "/"
-					+ preview.getPermlink();
-			busyPost.setWidth("45%");
-			busyPost.setMargin(2);
-			busyPost.setTarget("_blank");
-			busyPost.setHref(bhref);
-			busyPost.setText("BUSY.ORG POST");
-			busyPost.setType(ButtonType.RAISED);
+			MaterialLink altPostLink = new MaterialLink();
+			if (preview.getCustomUrl() != null && !preview.getCustomUrl().trim().isEmpty()) {
+				String bhref = preview.getCustomUrl();
+				altPostLink.setWidth("45%");
+				altPostLink.setMargin(2);
+				altPostLink.setTarget("_blank");
+				altPostLink.setHref(bhref);
+				altPostLink.setText(preview.getCustomUrlName());
+				altPostLink.setType(ButtonType.RAISED);
+				altPostLink.setBackgroundColor(Color.BLUE_GREY);
+			} else {
+				String bhref = "https://busy.org/" + preview.getTags().get(0) + "/@" + preview.getAuthor() + "/"
+						+ preview.getPermlink();
+				altPostLink.setWidth("45%");
+				altPostLink.setMargin(2);
+				altPostLink.setTarget("_blank");
+				altPostLink.setHref(bhref);
+				altPostLink.setText("BUSY.ORG POST");
+				altPostLink.setType(ButtonType.RAISED);
+			}
 
 			MaterialButton channel = new MaterialButton();
 			channel.setText("@" + preview.getAuthor());
-			channel.setWidth("45%");
+			channel.setWidth("75%");
 			channel.setMargin(2);
-			channel.addClickHandler((e)->fireEvent(new Event.AddToIncludeFilter("@"+preview.getAuthor())));
+			channel.setBackgroundColor(Color.GREEN);
+			channel.addClickHandler((e) -> fireEvent(new Event.AddToIncludeFilter("@" + preview.getAuthor())));
 
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
@@ -323,8 +323,8 @@ public class BrowseView extends EventBusComposite {
 			panel.add(new Br());
 			panel.add(viewTags);
 			panel.add(zoomImage);
-			panel.add(steemPost);
-			panel.add(busyPost);
+			panel.add(postLink);
+			panel.add(altPostLink);
 			posts.add(panel);
 		}
 	}

@@ -14,7 +14,17 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	private List<String> image;
 	private List<String> tags;
 	private List<String> combinedImages;
+	private String customUrl;
+	private String customUrlName;
 	
+	public String getCustomUrlName() {
+		return customUrlName;
+	}
+
+	public void setCustomUrlName(String customUrlName) {
+		this.customUrlName = customUrlName;
+	}
+
 	public void setCombinedImages(List<String> combinedImages) {
 		this.combinedImages = combinedImages;
 	}
@@ -174,5 +184,13 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 		if (!combinedImages.contains(image)) {
 			combinedImages.add(image);
 		}
+	}
+
+	public String getCustomUrl() {
+		return customUrl;
+	}
+
+	public void setCustomUrl(String customUrl) {
+		this.customUrl = customUrl;
 	}
 }

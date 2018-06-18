@@ -6,18 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class DiscussionMetadata implements HasJsonAnyGetterSetter {
-	
 	private String thumbnail;
 	private List<String> image;
 	private List<String> links;
-	private String app;
-	public String getApp() {
+	private Object app;
+	public Object getApp() {
 		return app;
 	}
-	public void setApp(String app) {
+	public void setApp(Object app) {
 		this.app = app;
 	}
 	public String getFormat() {

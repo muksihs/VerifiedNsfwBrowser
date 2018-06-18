@@ -30,7 +30,10 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-//	private static final String DEBUG_AUTHOR = "seamann";
+private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a href=[\"']?(https://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
+private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+	//	private static final String DEBUG_AUTHOR = "seamann";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
 
@@ -84,17 +87,16 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				if (metadata.getTags() == null) {
 					break parseMetadata;
 				}
-//				if (!metadata.getTags().contains("nsfw") && !metadata.getTags().contains("NSFW")) {
-//					GWT.log("NOT NSFW post skipped: " + entry.getAuthor() + ", " + entry.getPermlink());
-//					continue;
-//				}
 				entry.setTags(metadata.getTags());
 				entry.setImage(metadata.getImage());
 				entry.setThumbnail(metadata.getThumbnail());
 				entry.addToCombinedImages(metadata.getThumbnail());
 				entry.addToCombinedImages(metadata.getImage());
 			} catch (JsonDeserializationException e) {
+				GWT.log("BAD BLOG DATA: "+discussion.getAuthor()+"/"+discussion.getPermlink());
 				GWT.log(e.getMessage(), e);
+				//prevent NPEs
+				entry.setTags(new ArrayList<>());
 			}
 			final String body = discussion.getBody();
 			
@@ -153,6 +155,28 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					entry.addToCombinedImages(Arrays.asList(tmpUrls));
 				}
 			}
+			if (entry.getThumbnail()!=null) {
+				if (entry.getThumbnail().matches("https?://.*?dlive.io/.*")) {
+					if (body.matches(URL_PATTERN_DLIVE)) {
+						entry.setCustomUrlName("DLive");
+						entry.setCustomUrl(body.replaceAll(URL_PATTERN_DLIVE, "$1"));
+					}
+				}
+			}
+			if (body.contains("dporn.co/dporn/") && discussion.getJsonMetadata().contains("dporn")){
+				if (body.matches(URL_PATTERN_DPORN2)) {
+					entry.setCustomUrlName("DPORN");
+					String tmp = body;
+					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN2, "$1"));
+				}
+			}
+			if (body.contains("https://d.tube/#!") && discussion.getJsonMetadata().contains("videohash")){
+				if (body.matches(URL_PATTERN_DTUBE)) {
+					entry.setCustomUrlName("DTUBE");
+					String tmp = body;
+					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DTUBE, "$1"));
+				}
+			}
 			entries.add(entry);
 		}
 		index.addAll(entries);
@@ -161,8 +185,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	@EventHandler
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
 		if (!event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty()) {
-			GWT.log("Filtered view (have tags): "+event.getHaveTags());
-			GWT.log("Filtered view (not tags): "+event.getNotTags());
 			List<BlogIndexEntry> list=index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
 			fireEvent(new Event.UpdatedPreviewList(list));
 			Set<String> availableTags = new TreeSet<>();
