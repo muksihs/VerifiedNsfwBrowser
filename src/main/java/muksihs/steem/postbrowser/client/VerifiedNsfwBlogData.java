@@ -30,10 +30,10 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a href=[\"']?(https://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
-private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
-private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
-	//	private static final String DEBUG_AUTHOR = "seamann";
+	private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a href=[\"']?(https://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+	private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
+	private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+	// private static final String DEBUG_AUTHOR = "seamann";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
 
@@ -90,72 +90,74 @@ private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?:
 				entry.setTags(metadata.getTags());
 				entry.setImage(metadata.getImage());
 				entry.setThumbnail(metadata.getThumbnail());
-				entry.addToCombinedImages(metadata.getThumbnail());
-				entry.addToCombinedImages(metadata.getImage());
+				entry.addToCombinedImages(trimAndStripQuotes(metadata.getThumbnail()));
+				entry.addToCombinedImages(trimAndStripQuotes(metadata.getImage()));
 			} catch (JsonDeserializationException e) {
-				GWT.log("BAD BLOG DATA: "+discussion.getAuthor()+"/"+discussion.getPermlink());
+				GWT.log("BAD BLOG DATA: " + discussion.getAuthor() + "/" + discussion.getPermlink());
 				GWT.log(e.getMessage(), e);
-				//prevent NPEs
+				// prevent NPEs
 				entry.setTags(new ArrayList<>());
 			}
 			final String body = discussion.getBody();
-			
-			//add body extracted images next (Markdown)
-			//![wo3n2ln78t.jpg](https://img.esteem.ws/wo3n2ln78t.jpg)
-			//![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
+			// add body extracted images next (Markdown)
+			// ![wo3n2ln78t.jpg](https://img.esteem.ws/wo3n2ln78t.jpg)
+			// ![alt
+			// text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png
+			// "Logo Title Text 1")
 			if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
 				String tmp = body;
-				//strip all but MD image tags
+				// strip all but MD image tags
 				tmp = tmp.replaceAll("[^\\)]+!", "!");
 				tmp = tmp.replaceAll("\\)[^!]+", ")");
-				
-				//convert all to bare urls
+
+				// convert all to bare urls
 				tmp = tmp.replaceAll("!\\[[^\\]]*\\]", "");
 				tmp = tmp.replaceAll("\\(([^\\)\\s]+)[^\\)]*", "\n$1\n");
-				
-				//remove any remaining and hence invalid paren sets
+
+				// remove any remaining and hence invalid paren sets
 				tmp = tmp.replaceAll("\\([^\\)]*\\)", "");
-				
-				//strip possible single or double surrounding quotes
-				tmp = ("\n"+tmp+"\n").replaceAll("\n['\"]+", "");
-				tmp = ("\n"+tmp+"\n").replaceAll("['\"]+\n", "");
-				//cleanup removing blank lines
+
+				// strip possible single or double surrounding quotes
+				tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
+				tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
+				// cleanup removing blank lines
 				tmp = tmp.replaceAll("\n+", "\n");
-				//split on inner "\n" and add to combined images
+				// split on inner "\n" and add to combined images
 				String[] tmpUrls = tmp.trim().split("\n");
-				if (tmpUrls!=null&&tmpUrls.length>0) {
-					entry.addToCombinedImages(Arrays.asList(tmpUrls));
+				if (tmpUrls != null && tmpUrls.length > 0) {
+					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 				}
 			}
 
-			//add body extracted images last (HTML <img ...>
-			
+			// add body extracted images last (HTML <img ...>
+
 			if (body.matches("[\\s\\S]*<[iI][mM][gG][^>]+>[\\s\\S]*")) {
-				//strip all but tags
+				// strip all but tags
 				String tmp = body;
 				tmp = tmp.replaceAll("[^>]+<", "<");
 				tmp = tmp.replaceAll(">[^<]+", ">");
-				//reduce down to only img tags
+				// reduce down to only img tags
 				tmp = tmp.replaceAll("(<>)", "");
 				tmp = tmp.replaceAll("(<[^iI][^>]*>)", "");
 				tmp = tmp.replaceAll("(<[iI][^mM][^>]*>)", "");
 				tmp = tmp.replaceAll("(<[iI][mM][^gG]\\s+[^>]*>)", "");
-				//convert all img tags with a src component to bare urls
+				// convert all img tags with a src component to bare urls
 				tmp = tmp.replaceAll("<[^>]+?src[ \n]*=[ \n]*([^> \n]+)[^>]*>", "\n$1\n");
-				//remove any remaining and hence invalid tags
+				// remove any remaining and hence invalid tags
 				tmp = tmp.replaceAll("(<[^>]*>)", "");
-				//strip possible single or double surrounding quotes
-				tmp = ("\n"+tmp+"\n").replaceAll("\n['\"]+", "");
-				tmp = ("\n"+tmp+"\n").replaceAll("['\"]+\n", "");
-				//cleanup removing blank lines
+				// strip possible single or double surrounding quotes
+				tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
+				tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
+				// cleanup removing blank lines
 				tmp = tmp.replaceAll("\n+", "\n");
-				//split on inner "\n" and add to combined images
+				// split on inner "\n" and add to combined images
 				String[] tmpUrls = tmp.trim().split("\n");
-				if (tmpUrls!=null&&tmpUrls.length>0) {
-					entry.addToCombinedImages(Arrays.asList(tmpUrls));
+				if (tmpUrls != null && tmpUrls.length > 0) {
+					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 				}
 			}
-			if (entry.getThumbnail()!=null) {
+			if (entry.getThumbnail() != null) {
 				if (entry.getThumbnail().matches("https?://.*?dlive.io/.*")) {
 					if (body.matches(URL_PATTERN_DLIVE)) {
 						entry.setCustomUrlName("DLive");
@@ -163,14 +165,14 @@ private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?:
 					}
 				}
 			}
-			if (body.contains("dporn.co/dporn/") && discussion.getJsonMetadata().contains("dporn")){
+			if (body.contains("dporn.co/dporn/") && discussion.getJsonMetadata().contains("dporn")) {
 				if (body.matches(URL_PATTERN_DPORN2)) {
 					entry.setCustomUrlName("DPORN");
 					String tmp = body;
 					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN2, "$1"));
 				}
 			}
-			if (body.contains("https://d.tube/#!") && discussion.getJsonMetadata().contains("videohash")){
+			if (body.contains("https://d.tube/#!") && discussion.getJsonMetadata().contains("videohash")) {
 				if (body.matches(URL_PATTERN_DTUBE)) {
 					entry.setCustomUrlName("DTUBE");
 					String tmp = body;
@@ -182,20 +184,51 @@ private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?:
 		index.addAll(entries);
 	};
 
+	private List<String> trimAndStripQuotes(List<String> image) {
+		if (image == null) {
+			return null;
+		}
+		List<String> tmp = new ArrayList<>();
+		for (String thumbnail : image) {
+			tmp.add(trimAndStripQuotes(thumbnail));
+		}
+		return tmp;
+	}
+
+	private String trimAndStripQuotes(String thumbnail) {
+		if (thumbnail == null) {
+			return thumbnail;
+		}
+		thumbnail = thumbnail.trim();
+		while (thumbnail.length() > 0 && thumbnail.startsWith("\"")) {
+			thumbnail = thumbnail.substring(1).trim();
+		}
+		while (thumbnail.length() > 0 && thumbnail.startsWith("'")) {
+			thumbnail = thumbnail.substring(1).trim();
+		}
+		while (thumbnail.length() > 0 && thumbnail.endsWith("\"")) {
+			thumbnail = thumbnail.substring(0, thumbnail.length() - 1).trim();
+		}
+		while (thumbnail.length() > 0 && thumbnail.endsWith("'")) {
+			thumbnail = thumbnail.substring(0, thumbnail.length() - 1).trim();
+		}
+		return thumbnail;
+	}
+
 	@EventHandler
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
 		if (!event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty()) {
-			List<BlogIndexEntry> list=index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
+			List<BlogIndexEntry> list = index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
 			fireEvent(new Event.UpdatedPreviewList(list));
 			Set<String> availableTags = new TreeSet<>();
-			for (BlogIndexEntry preview:list) {
+			for (BlogIndexEntry preview : list) {
 				List<String> tags = preview.getTags();
-				if (tags!=null) {
+				if (tags != null) {
 					availableTags.addAll(tags);
 				}
 				String author = preview.getAuthor();
-				if (author!=null) {
-					availableTags.add("@"+author);
+				if (author != null) {
+					availableTags.add("@" + author);
 				}
 			}
 			fireEvent(new Event.SetAvailableTags(availableTags));
