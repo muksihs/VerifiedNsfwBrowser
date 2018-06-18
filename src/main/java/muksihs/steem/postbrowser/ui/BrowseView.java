@@ -305,6 +305,9 @@ public class BrowseView extends EventBusComposite {
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
 			title.setFontWeight(FontWeight.BOLDER);
+			
+			MaterialLabel date = new MaterialLabel(new java.sql.Date(preview.getCreated().getTime()).toString());
+			date.setMargin(2);
 
 			MaterialPanel panel = new MaterialPanel();
 			panel.getElement().getStyle().setVerticalAlign(VerticalAlign.TOP);
@@ -319,6 +322,7 @@ public class BrowseView extends EventBusComposite {
 			panel.add(img);
 			panel.add(new Br());
 			panel.add(title);
+			panel.add(date);
 			panel.add(channel);
 			panel.add(new Br());
 			panel.add(viewTags);
