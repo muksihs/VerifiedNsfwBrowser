@@ -298,7 +298,7 @@ private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?:
 		if (Util.isSdm()) {
 			count = 5;
 		} else {
-			count = 100;
+			count = 150;
 		}
 		SteemApi.getDiscussionsByBlog(username, count, cb);
 		iList.remove();
