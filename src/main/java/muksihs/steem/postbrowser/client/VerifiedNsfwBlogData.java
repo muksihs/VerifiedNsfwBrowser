@@ -30,9 +30,10 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-	private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a href=[\"']?(https://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+	private static final String URL_PATTERN_DPORN1 = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?dporn.co/[^/]*?/[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
+	private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
 	private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
-	private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?>[\\s\\S]*";
+	private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
 	// private static final String DEBUG_AUTHOR = "seamann";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
@@ -165,11 +166,18 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					}
 				}
 			}
-			if (body.contains("dporn.co/dporn/") && discussion.getJsonMetadata().contains("dporn")) {
+			dporn: if (body.contains("dporn.co/") && discussion.getJsonMetadata().contains("dporn")) {
 				if (body.matches(URL_PATTERN_DPORN2)) {
 					entry.setCustomUrlName("DPORN");
 					String tmp = body;
 					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN2, "$1"));
+					break dporn;
+				}
+				if (body.matches(URL_PATTERN_DPORN1)) {
+					entry.setCustomUrlName("DPORN");
+					String tmp = body;
+					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN1, "$1"));
+					break dporn;
 				}
 			}
 			if (body.contains("https://d.tube/#!") && discussion.getJsonMetadata().contains("videohash")) {
