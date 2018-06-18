@@ -106,11 +106,11 @@ private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a href=[\"']?(https?:
 			if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
 				String tmp = body;
 				//strip all but MD image tags
-				tmp = tmp.replaceAll("[^\\)]+!", "");
-				tmp = tmp.replaceAll("\\)[^!]+", "");
+				tmp = tmp.replaceAll("[^\\)]+!", "!");
+				tmp = tmp.replaceAll("\\)[^!]+", ")");
 				
 				//convert all to bare urls
-				tmp = tmp.replaceAll("\\[[^\\]]+\\]", "");
+				tmp = tmp.replaceAll("!\\[[^\\]]*\\]", "");
 				tmp = tmp.replaceAll("\\(([^\\)\\s]+)[^\\)]*", "\n$1\n");
 				
 				//remove any remaining and hence invalid paren sets
