@@ -70,6 +70,9 @@ public class AppController implements GlobalAsyncEventBus {
 		this.notTags.remove(event.getTag());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		if (event.getTag().startsWith("@")) {
+			fireEvent(new Event.IndexBlog(event.getTag().substring(1)));
+		}
 	}
 	
 	@EventHandler
@@ -299,11 +302,6 @@ public class AppController implements GlobalAsyncEventBus {
 		}
 		afterLoginPendingEvent = null;
 		History.fireCurrentHistoryState();
-//		if (event.isLoggedIn()) {
-//			History.fireCurrentHistoryState();
-//		} else {
-//			History.fireCurrentHistoryState();
-//		}
 	}
 	
 	private FilteredListMode filterMode=FilteredListMode.AND;
@@ -328,7 +326,7 @@ public class AppController implements GlobalAsyncEventBus {
 				fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 			}
 		};
-		loadUpdatePreviewList.schedule(500);
+		loadUpdatePreviewList.schedule(100);
 	}
 	@EventHandler
 	protected void onUpdatedPreviewList(Event.UpdatedPreviewList event) {

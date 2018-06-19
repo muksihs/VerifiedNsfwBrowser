@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gwt.user.client.Timer;
 
 import muksihs.steem.postbrowser.eventbus.Event;
@@ -30,24 +28,28 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	private final Map<String, Set<BlogIndexEntry>> byTag;
 	private final Set<String> authors;
 	private final Map<String, BlogIndexEntry> mostRecentByAuthor;
+	private final Map<String, BlogIndexEntry> oldestByAuthor;
+	private final Map<String, Boolean> indexingComplete;
 
+	//TODO:
 	// deduped values for serialization
-	@JsonValue
-	protected Collection<BlogIndexEntry> jsonValue() {
-		Set<BlogIndexEntry> values = new HashSet<>();
-		for (Set<BlogIndexEntry> entries : byTag.values()) {
-			values.addAll(entries);
-		}
-		return values;
-	}
+//	@JsonValue
+//	protected Collection<BlogIndexEntry> jsonValue() {
+//		Set<BlogIndexEntry> values = new HashSet<>();
+//		for (Set<BlogIndexEntry> entries : byTag.values()) {
+//			values.addAll(entries);
+//		}
+//		return values;
+//	}
 
+	//TODO:
 	// always build new index upon deserialization
-	@JsonCreator
-	protected static BlogIndex jsonCreate(Collection<BlogIndexEntry> entries) {
-		BlogIndex index = new BlogIndex();
-		index.addAll(entries);
-		return index;
-	}
+//	@JsonCreator
+//	protected static BlogIndex jsonCreate(Collection<BlogIndexEntry> entries) {
+//		BlogIndex index = new BlogIndex();
+//		index.addAll(entries);
+//		return index;
+//	}
 
 	public static enum FilteredListMode {
 		AND, OR;
@@ -56,8 +58,47 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	public BlogIndexEntry getMostRecentEntry(String author) {
 		return mostRecentByAuthor.get(author);
 	}
+	
+	/**
+	 * @param author
+	 * @return
+	 */
+	public BlogIndexEntry getOldestEntry(String author) {
+		return oldestByAuthor.get(author);
+	}
+	
+	/**
+	 * List of authors sorted by their oldest indexed posts, date descending
+	 * @return
+	 */
+	public List<String> getOldestDateSortedAuthors() {
+		List<String> authors = new ArrayList<>(oldestByAuthor.keySet());
+		Collections.sort(authors, (a, b) -> {
+			BlogIndexEntry ea = oldestByAuthor.get(a);
+			BlogIndexEntry eb = oldestByAuthor.get(b);
+			if (ea != null && eb != null) {
+				if (!ea.getCreated().equals(eb.getCreated())) {
+					return -ea.getCreated().compareTo(eb.getCreated());
+				}
+			}
+			return a.compareToIgnoreCase(b);
+		});
+		return authors;
+	}
+	
+	public boolean isIndexingComplete(String author) {
+		return indexingComplete.containsKey(author)?indexingComplete.get(author):false;
+	}
+	
+	public void setIndexingComplete(String author, boolean isIndexingComplete) {
+		indexingComplete.put(author, isIndexingComplete);
+	}
 
-	public List<String> getDateSortedAuthors() {
+	/**
+	 * List of authors sorted by their newest indexed posts, date descending
+	 * @return
+	 */
+	public List<String> getNewestDateSortedAuthors() {
 		List<String> authors = new ArrayList<>(mostRecentByAuthor.keySet());
 		Collections.sort(authors, (a, b) -> {
 			BlogIndexEntry ea = mostRecentByAuthor.get(a);
@@ -169,9 +210,11 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		byTag = new HashMap<>();
 		authors = new TreeSet<>();
 		mostRecentByAuthor = new HashMap<>();
+		oldestByAuthor=new HashMap<>();
+		indexingComplete = new HashMap<>();
 	}
 
-	public void add(BlogIndexEntry entry) {
+	public void add(String username, BlogIndexEntry entry) {
 		if (entry == null) {
 			return;
 		}
@@ -185,25 +228,28 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				tags.add(tag);
 			}
 		}
-		author: if (entry.getAuthor() != null) {
-			String author = entry.getAuthor();
-			author = author.trim().toLowerCase();
-			if (author.isEmpty()) {
-				break author;
-			}
-			authors.add(author);
-			tags.add("@" + author);
-			final Date created = entry.getCreated();
-			if (created != null) {
-				BlogIndexEntry prev = mostRecentByAuthor.get(author);
-				if (prev == null || created.after(prev.getCreated())) {
-					mostRecentByAuthor.put(author, entry);
-				}
+		final Date created = entry.getCreated();
+		//keep track of oldest post, reblog or not (for use by paginated indexing)
+		if (created!=null) {
+			BlogIndexEntry prev = oldestByAuthor.get(username);
+			if (prev == null || created.before(prev.getCreated())) {
+				oldestByAuthor.put(username, entry);
 			}
 		}
-		ensureTagEntriesExist(tags);
-		for (String tag : tags) {
-			byTag.get(tag).add(entry);
+		//don't index reblogs
+		if (username.equals(entry.getAuthor())) {
+			authors.add(username);
+			tags.add("@" + username);
+			if (created != null) {
+				BlogIndexEntry prev = mostRecentByAuthor.get(username);
+				if (prev == null || created.after(prev.getCreated())) {
+					mostRecentByAuthor.put(username, entry);
+				}
+			}
+			ensureTagEntriesExist(tags);
+			for (String tag : tags) {
+				byTag.get(tag).add(entry);
+			}
 		}
 	}
 
@@ -215,7 +261,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		}
 	}
 
-	public void addAll(Collection<BlogIndexEntry> entries) {
+	public void addAll(String username, Collection<BlogIndexEntry> entries) {
 		if (entries == null || entries.isEmpty()) {
 			return;
 		}
@@ -224,7 +270,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		Iterator<BlogIndexEntry> iEntries = tmp.iterator();
 		int count = 0;
 		while (count++ < 10 && iEntries.hasNext()) {
-			add(iEntries.next());
+			add(username, iEntries.next());
 			iEntries.remove();
 		}
 		if (tmp.isEmpty()) {
@@ -235,7 +281,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		new Timer() {
 			@Override
 			public void run() {
-				addAll(tmp);
+				addAll(username, tmp);
 			}
 		}.schedule(0);
 	}
@@ -244,7 +290,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		return new TreeSet<>(byTag.keySet());
 	}
 	
-	public List<BlogIndexEntry> getEntries() {
-		return new ArrayList<>(jsonValue());
-	}
+//	public List<BlogIndexEntry> getEntries() {
+//		return new ArrayList<>(jsonValue());
+//	}
 }

@@ -23,7 +23,7 @@ import steem.models.UserAccountInfo;
 
 @JsType(namespace = "steem", name = "api", isNative = true)
 public class SteemApi {
-	
+
 	@JsMethod(name = "getContentReplies")
 	private static native void _getContentReplies(String username, String permlink,
 			SteemCallback_old<JavaScriptObject> discussion);
@@ -69,7 +69,7 @@ public class SteemApi {
 					return;
 				}
 				if (result == null) {
-					DomGlobal.console.log("getDiscussionsByBlog: NULL RESPONSE.");
+					DomGlobal.console.log("getContent: NULL RESPONSE.");
 					return;
 				}
 				try {
@@ -88,28 +88,31 @@ public class SteemApi {
 		};
 		_getContent(username, permlink, parseCb);
 	}
-	
-	
+
 	public static interface FollowingListMapper extends ObjectMapper<FollowingList> {
 	}
+
 	public static interface FollowingListCallback extends SteemTypedCallback<FollowingList, FollowingListMapper> {
 		@Override
 		default FollowingListMapper mapper() {
 			return GWT.create(FollowingListMapper.class);
 		}
 	}
-	@JsMethod(name="getFollowing")
-	private static native void _getFollowing(String username, String startFollowing, String followType, int limit, SteemJsCallback jsCallback);
+
+	@JsMethod(name = "getFollowing")
+	private static native void _getFollowing(String username, String startFollowing, String followType, int limit,
+			SteemJsCallback jsCallback);
+
 	@JsOverlay
-	public static void getFollowing(String username, String startFollowing, String followType, int limit, FollowingListCallback callback) {
+	public static void getFollowing(String username, String startFollowing, String followType, int limit,
+			FollowingListCallback callback) {
 		_getFollowing(username, startFollowing, followType, limit, (error, result) -> {
 			callback.onResult(error, result);
 		});
 	}
-	
+
 	@JsMethod(name = "getTrendingTags")
 	private static native void _getTrendingTags(String afterTag, int limit, SteemJsCallback jsCallback);
-	
 
 	@JsOverlay
 	public static void getTrendingTags(String afterTag, int limit, TrendingTagsCallback callback) {
@@ -137,6 +140,30 @@ public class SteemApi {
 			int limit, //
 			DiscussionsCallback callback) {
 		JSONObject json = new JSONObject();
+		json.put("tag", new JSONString(username));
+		json.put("limit", new JSONNumber(limit));
+		_getDiscussionsByBlog(json.getJavaScriptObject(), (error, result) -> callback.onResult(error, result));
+	}
+
+	/**
+	 * Get blog entries from blog by username starting at post with
+	 * author=postAuthor and permlink=postPermlink
+	 * 
+	 * @param username
+	 * @param postAuthor
+	 * @param postPermlink
+	 * @param limit
+	 * @param callback
+	 */
+	@JsOverlay
+	public static void getDiscussionsByBlog(String username, //
+			String postAuthor, //
+			String postPermlink, //
+			int limit, //
+			DiscussionsCallback callback) {
+		JSONObject json = new JSONObject();
+		json.put("start_author", new JSONString(postAuthor));
+		json.put("start_permlink", new JSONString(postPermlink));
 		json.put("tag", new JSONString(username));
 		json.put("limit", new JSONNumber(limit));
 		_getDiscussionsByBlog(json.getJavaScriptObject(), (error, result) -> callback.onResult(error, result));
@@ -184,10 +211,10 @@ public class SteemApi {
 	public static void getAccounts(String[] usernames, UserAccountInfoListCallback callback) {
 		_getAccounts(usernames, (error, result) -> callback.onResult(error, result));
 	}
-	
+
 	@JsOverlay
 	public static void getAccount(String username, UserAccountInfoListCallback callback) {
-		_getAccounts(new String[] {username}, (error, result) -> callback.onResult(error, result));
+		_getAccounts(new String[] { username }, (error, result) -> callback.onResult(error, result));
 	}
 
 	public static interface UserAccountInfoListCallback
@@ -213,8 +240,9 @@ public class SteemApi {
 		}
 	}
 
-//	public static interface HashMapMapper extends ObjectMapper<HashMap<String, Object>> {
-//	}
+	// public static interface HashMapMapper extends ObjectMapper<HashMap<String,
+	// Object>> {
+	// }
 
 	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
 	}
@@ -225,13 +253,12 @@ public class SteemApi {
 			return GWT.create(DiscussionsMapper.class);
 		}
 	}
-	
+
 	public static interface DiscussionMetadataMapper extends ObjectMapper<DiscussionMetadata> {
 	}
 
 	@JsOverlay
 	public static DiscussionMetadataMapper discussionMetadataMapper = GWT.create(DiscussionMetadataMapper.class);
-
 
 	public static class Util {
 		// old
