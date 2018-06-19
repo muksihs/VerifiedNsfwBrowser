@@ -275,7 +275,6 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		}
 		if (tmp.isEmpty()) {
 			fireEvent(new Event.Indexing(false));
-			fireEvent(new Event.SetAvailableTags(new TreeSet<>(byTag.keySet())));
 			return;
 		}
 		new Timer() {

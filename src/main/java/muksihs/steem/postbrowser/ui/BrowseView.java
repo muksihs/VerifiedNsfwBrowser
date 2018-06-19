@@ -6,14 +6,12 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.dom.client.Style.FontWeight;
 import com.google.gwt.dom.client.Style.VerticalAlign;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.binder.EventBinder;
@@ -26,6 +24,7 @@ import gwt.material.design.client.constants.TextAlign;
 import gwt.material.design.client.ui.MaterialAnchorButton;
 import gwt.material.design.client.ui.MaterialButton;
 import gwt.material.design.client.ui.MaterialCollapsible;
+import gwt.material.design.client.ui.MaterialCollapsibleItem;
 import gwt.material.design.client.ui.MaterialImage;
 import gwt.material.design.client.ui.MaterialLabel;
 import gwt.material.design.client.ui.MaterialLink;
@@ -64,6 +63,9 @@ public class BrowseView extends EventBusComposite {
 	@UiField
 	protected MaterialButton nextBtm;
 
+	@UiField
+	protected MaterialCollapsibleItem filterTagsItem;
+
 	private static BrowseViewUiBinder uiBinder = GWT.create(BrowseViewUiBinder.class);
 
 	interface BrowseViewUiBinder extends UiBinder<Widget, BrowseView> {
@@ -78,6 +80,14 @@ public class BrowseView extends EventBusComposite {
 	}
 
 	public BrowseView() {
+		tags = new MaterialCollapsible() {
+			@Override
+			public void reload() {
+				GWT.log("#reload");
+				super.reload();
+				reloadAvailableTagsView();
+			}
+		};
 		initWidget(uiBinder.createAndBindUi(this));
 		previous.addClickHandler(this::getPrevious);
 		next.addClickHandler(this::getNext);
@@ -107,7 +117,7 @@ public class BrowseView extends EventBusComposite {
 		fireEvent(new Event.BrowseViewLoaded());
 	}
 
-	@UiField
+	@UiField(provided = true)
 	protected MaterialCollapsible tags;
 
 	@EventHandler
@@ -122,24 +132,32 @@ public class BrowseView extends EventBusComposite {
 		this.nextBtm.setEnabled(event.isEnable());
 	}
 
+	private final Set<String> availableTagSet = new TreeSet<>();
+
 	@EventHandler
 	protected void onSetAvailableTags(Event.SetAvailableTags event) {
-		Scheduler.get().scheduleDeferred(() -> {
-			tags.closeAll();
-			MaterialPanel panel = new MaterialPanel();
-			for (String tag : event.getTags()) {
-				MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-				if (tag.startsWith("-") || tag.startsWith("+")) {
-					tagLabel.setEnabled(false);
-				} else {
-					tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
-				}
-				tagLabel.setMargin(1);
-				panel.add(tagLabel);
+		availableTagSet.clear();
+		availableTagSet.addAll(event.getTags());
+		// TODO: add additional tags to end of display
+		if (!filterTagsItem.isActive()) {
+			reloadAvailableTagsView();
+		}
+	}
+
+	private void reloadAvailableTagsView() {
+		MaterialPanel panel = new MaterialPanel();
+		for (String tag : availableTagSet) {
+			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
+			if (tag.startsWith("-") || tag.startsWith("+")) {
+				tagLabel.setEnabled(false);
+			} else {
+				tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
 			}
-			availableTags.clear();
-			availableTags.add(panel);
-		});
+			tagLabel.setMargin(1);
+			panel.add(tagLabel);
+		}
+		availableTags.clear();
+		availableTags.add(panel);
 	}
 
 	private final Set<String> activeFilterTags = new TreeSet<>();
@@ -148,7 +166,6 @@ public class BrowseView extends EventBusComposite {
 	protected void showFilterTags(Event.ShowFilterTags event) {
 		filterTags.clear();
 		activeFilterTags.clear();
-		// tags.closeAll();
 		for (String tag : event.getTags()) {
 			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
 			tagLabel.addClickHandler((e) -> showRemoveFromFilterDialog(tag));
@@ -186,6 +203,21 @@ public class BrowseView extends EventBusComposite {
 		RootPanel.get().add(dialog);
 		dialog.open();
 		return null;
+	}
+
+	@EventHandler
+	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
+		tags.closeAll();
+	}
+
+	@EventHandler
+	protected void onAddToIncludeFilter(Event.AddToExcludeFilter event) {
+		tags.closeAll();
+	}
+
+	@EventHandler
+	protected void onAddToIncludeFilter(Event.RemoveFromFilter event) {
+		tags.closeAll();
 	}
 
 	private Void showAddToFilterDialog(String tag) {

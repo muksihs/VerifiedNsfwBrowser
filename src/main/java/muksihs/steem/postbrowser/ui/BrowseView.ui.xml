@@ -46,8 +46,8 @@
 					<m:MaterialPanel ui:field="filterTags"></m:MaterialPanel>
 				</m:MaterialCollapsibleBody>
 			</m:MaterialCollapsibleItem>
-			<m:MaterialCollapsibleItem>
-				<m:MaterialCollapsibleHeader>
+			<m:MaterialCollapsibleItem ui:field="filterTagsItem">
+				<m:MaterialCollapsibleHeader >
 					<m:MaterialLink text="Available Tag Filters"
 						iconType="POLYMER" iconPosition="LEFT" textColor="BLACK" />
 				</m:MaterialCollapsibleHeader>
