@@ -16,6 +16,7 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.binder.EventBinder;
 import com.google.web.bindery.event.shared.binder.EventHandler;
 
+import elemental2.dom.DomGlobal;
 import gwt.material.design.client.ui.MaterialToast;
 import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
@@ -342,15 +343,24 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}.schedule(1000);
 	}
 
+	private Timer timerGetDiscussionsByBlogFailsafe = null;
+	private Timer timerRestartAdditionalIndexBlogs = null;
 	private void additionalIndexBlogs(ListIterator<String> iList) {
+		if (timerGetDiscussionsByBlogFailsafe!=null) {
+			timerGetDiscussionsByBlogFailsafe.cancel();
+		}
 		if (!iList.hasNext()) {
-			new Timer() {
+			return;
+		}
+		if (timerRestartAdditionalIndexBlogs!=null) {
+			timerRestartAdditionalIndexBlogs.cancel();
+			timerRestartAdditionalIndexBlogs = new Timer() {
 				@Override
 				public void run() {
 					fireEvent(new Event.StartBackgroundIndexing());
 				}
-			}.schedule(500);
-			return;
+			};
+			timerRestartAdditionalIndexBlogs.schedule(5000);
 		}
 		final String username = iList.next();
 		iList.remove();
@@ -358,6 +368,13 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			additionalIndexBlogs(iList);
 			return;
 		}
+		timerGetDiscussionsByBlogFailsafe = new Timer() {
+			@Override
+			public void run() {
+				additionalIndexBlogs(iList);				
+			}
+		};
+		timerGetDiscussionsByBlogFailsafe.schedule(1000);
 		BlogIndexEntry oldestPost = index.getOldestEntry(username);
 		if (oldestPost == null) {
 			additionalIndexBlogs(iList);
@@ -374,7 +391,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					indexBlogEntries(username, result);
 					if (result.getList().size() == 1) {
 						index.setIndexingComplete(username, true);
-						MaterialToast.fireToast("Indexing complete for @" + username, 1000);
+						DomGlobal.console.log("Indexing complete for @" + username);
+//						MaterialToast.fireToast("Indexing complete for @" + username, 1000);
 					}
 				}
 				new Timer() {
