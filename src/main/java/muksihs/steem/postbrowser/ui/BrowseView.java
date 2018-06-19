@@ -1,5 +1,7 @@
 package muksihs.steem.postbrowser.ui;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -146,22 +148,20 @@ public class BrowseView extends EventBusComposite {
 	protected void showFilterTags(Event.ShowFilterTags event) {
 		filterTags.clear();
 		activeFilterTags.clear();
-		tags.closeAll();
-		Scheduler.get().scheduleDeferred(() -> {
-			for (String tag : event.getTags()) {
-				MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-				tagLabel.addClickHandler((e) -> showRemoveFromFilterDialog(tag));
-				tagLabel.setMargin(1);
-				if (tag.startsWith("-")) {
-					tagLabel.setBackgroundColor(Color.RED);
-				}
-				if (tag.startsWith("+")) {
-					tagLabel.setBackgroundColor(Color.GREEN);
-				}
-				filterTags.add(tagLabel);
-				activeFilterTags.add(tag);
+		// tags.closeAll();
+		for (String tag : event.getTags()) {
+			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
+			tagLabel.addClickHandler((e) -> showRemoveFromFilterDialog(tag));
+			tagLabel.setMargin(1);
+			if (tag.startsWith("-")) {
+				tagLabel.setBackgroundColor(Color.RED);
 			}
-		});
+			if (tag.startsWith("+")) {
+				tagLabel.setBackgroundColor(Color.GREEN);
+			}
+			filterTags.add(tagLabel);
+			activeFilterTags.add(tag);
+		}
 	}
 
 	private Void showRemoveFromFilterDialog(String tag) {
@@ -218,9 +218,16 @@ public class BrowseView extends EventBusComposite {
 		return null;
 	}
 
+	private final List<BlogIndexEntry> prevPreviews = new ArrayList<>();
+
 	@EventHandler
 	protected void showPreviews(Event.ShowPreviews event) {
-		Window.scrollTo(0, 0);
+		if (prevPreviews.equals(event.getPreviews())) {
+			return;
+		}
+		prevPreviews.clear();
+		prevPreviews.addAll(event.getPreviews());
+		// Window.scrollTo(0, 0);
 		posts.clear();
 		for (BlogIndexEntry preview : event.getPreviews()) {
 			final String imgHref;
@@ -305,7 +312,7 @@ public class BrowseView extends EventBusComposite {
 			MaterialLabel title = new MaterialLabel(preview.getTitle());
 			title.setMargin(2);
 			title.setFontWeight(FontWeight.BOLDER);
-			
+
 			MaterialLabel date = new MaterialLabel(new java.sql.Date(preview.getCreated().getTime()).toString());
 			date.setMargin(2);
 

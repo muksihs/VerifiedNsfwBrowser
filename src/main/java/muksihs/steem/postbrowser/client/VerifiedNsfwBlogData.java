@@ -251,13 +251,13 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		fireEvent(new Event.SetAvailableTags(index.getTags()));
 	}
 
-//	@EventHandler
-//	protected void onIndexing(Event.Indexing event) {
-//		if (!event.isIndexing()) {
-//			DomGlobal.console.log(" - Unique tags: " + index.getTags().size());
-//			DomGlobal.console.log(" - Unique entries: " + index.getEntries().size());
-//		}
-//	}
+	// @EventHandler
+	// protected void onIndexing(Event.Indexing event) {
+	// if (!event.isIndexing()) {
+	// DomGlobal.console.log(" - Unique tags: " + index.getTags().size());
+	// DomGlobal.console.log(" - Unique entries: " + index.getEntries().size());
+	// }
+	// }
 
 	@EventHandler
 	protected void onAppStart(Event.AppStart event) {
@@ -266,7 +266,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onLoadNsfwVerifiedAccounts(Event.LoadNsfwVerifiedAccounts event) {
-		MaterialToast.fireToast("Loading Verified NSFW Account List", 1500);
+		MaterialToast.fireToast("Loading Verified NSFW Account List", 1000);
 		fireEvent(new Event.ShowLoading(true));
 		Set<String> list = new TreeSet<>();
 		int limit = 10;
@@ -276,7 +276,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			@Override
 			public void onResult(String error, FollowingList result) {
 				if (error != null) {
-					MaterialToast.fireToast("STEEM API ERROR: " + error);
+					MaterialToast.fireToast("STEEM API ERROR: " + error, 1000);
 					new Timer() {
 						@Override
 						public void run() {
@@ -307,7 +307,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		};
 		SteemApi.getFollowing("verifiednsfw", "", "blog", limit, cb);
 	}
-	
+
 	@EventHandler
 	protected void onStartBackgroundIndexing(Event.StartBackgroundIndexing event) {
 		List<String> list = index.getOldestDateSortedAuthors();
@@ -322,6 +322,26 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		additionalIndexBlogs(list.listIterator());
 	}
+
+	/**
+	 * When a user views a specific blog, early index the older entries.
+	 * 
+	 * @param event
+	 */
+	@EventHandler
+	protected void onIndexBlog(Event.IndexBlog event) {
+		if (index.isIndexingComplete(event.getAuthor())) {
+			return;
+		}
+		additionalIndexBlogs(new ArrayList<>(Arrays.asList(event.getAuthor())).listIterator());
+		new Timer() {
+			@Override
+			public void run() {
+				fireEvent(event);
+			}
+		}.schedule(1000);
+	}
+
 	private void additionalIndexBlogs(ListIterator<String> iList) {
 		if (!iList.hasNext()) {
 			new Timer() {
@@ -334,8 +354,12 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		final String username = iList.next();
 		iList.remove();
+		if (index.isIndexingComplete(username)) {
+			additionalIndexBlogs(iList);
+			return;
+		}
 		BlogIndexEntry oldestPost = index.getOldestEntry(username);
-		if (oldestPost==null) {
+		if (oldestPost == null) {
 			additionalIndexBlogs(iList);
 			return;
 		}
@@ -348,12 +372,17 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 				if (result != null) {
 					indexBlogEntries(username, result);
-					if (result.getList().size()==1) {
+					if (result.getList().size() == 1) {
 						index.setIndexingComplete(username, true);
-						MaterialToast.fireToast("Indexing complete for @"+username);
+						MaterialToast.fireToast("Indexing complete for @" + username, 1000);
 					}
 				}
-				additionalIndexBlogs(iList);
+				new Timer() {
+					@Override
+					public void run() {
+						additionalIndexBlogs(iList);
+					}
+				}.schedule(200);
 			}
 		};
 		GWT.log("#getDiscussionsByBlog(paginated): " + username);
@@ -363,19 +392,18 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		} else {
 			count = 100;
 		}
-		SteemApi.getDiscussionsByBlog(username, count, cb);
+		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), count, cb);
 	}
-	
-	//TODO: Event.IndexBlog
 
-	private boolean firstLoad=true;
+	private boolean firstLoad = true;
+
 	private void indexBlogs(ListIterator<String> iList) {
 		if (!iList.hasNext()) {
 			if (firstLoad) {
 				fireEvent(new Event.ShowLoading(false));
-				firstLoad=false;
+				firstLoad = false;
 				fireEvent(new Event.StartBackgroundIndexing());
-				MaterialToast.fireToast("Starting Additional Indexing in the Background");
+				MaterialToast.fireToast("Starting Additional Indexing in the Background", 1000);
 			}
 			return;
 		}
@@ -385,7 +413,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			@Override
 			public void onResult(String error, Discussions result) {
 				if (error != null) {
-					MaterialToast.fireToast("STEEM API ERROR: " + error);
+					MaterialToast.fireToast("STEEM API ERROR: " + error, 1000);
 					iList.add(username);
 					iList.previous();
 					indexBlogs(iList);
@@ -422,11 +450,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		if (list == null || list.isEmpty()) {
 			return;
 		}
-		firstLoad=true;
+		firstLoad = true;
 		fireEvent(new Event.ShowLoading(true));
 		final ListIterator<String> iList = new ArrayList<>(list).listIterator();
 		indexBlogs(iList);
-		MaterialToast.fireToast("Loading and Tag Indexing Blogs");
+		MaterialToast.fireToast("Loading and Tag Indexing Blogs", 1000);
 	}
 
 	public static interface Mapper extends ObjectMapper<Discussion> {
