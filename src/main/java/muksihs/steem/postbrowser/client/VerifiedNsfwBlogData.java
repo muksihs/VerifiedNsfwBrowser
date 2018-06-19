@@ -343,7 +343,13 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}.schedule(1000);
 	}
 
+	/**
+	 * in case of single api call crash
+	 */
 	private Timer timerGetDiscussionsByBlogFailsafe = null;
+	/**
+	 * in case of total steem js crash
+	 */
 	private Timer timerRestartAdditionalIndexBlogs = null;
 	private void additionalIndexBlogs(ListIterator<String> iList) {
 		if (timerGetDiscussionsByBlogFailsafe!=null) {
@@ -354,14 +360,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		if (timerRestartAdditionalIndexBlogs!=null) {
 			timerRestartAdditionalIndexBlogs.cancel();
-			timerRestartAdditionalIndexBlogs = new Timer() {
-				@Override
-				public void run() {
-					fireEvent(new Event.StartBackgroundIndexing());
-				}
-			};
-			timerRestartAdditionalIndexBlogs.schedule(5000);
 		}
+		timerRestartAdditionalIndexBlogs = new Timer() {
+			@Override
+			public void run() {
+				fireEvent(new Event.StartBackgroundIndexing());
+			}
+		};
+		timerRestartAdditionalIndexBlogs.schedule(10000);
 		final String username = iList.next();
 		iList.remove();
 		if (index.isIndexingComplete(username)) {
