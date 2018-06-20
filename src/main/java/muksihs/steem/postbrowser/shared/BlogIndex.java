@@ -27,8 +27,11 @@ import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 public class BlogIndex implements GlobalAsyncEventBus {
 	private final Map<String, Set<BlogIndexEntry>> byTag;
 	private final Set<String> authors;
+	public Set<String> getAuthors() {
+		return authors;
+	}
+
 	private final Map<String, BlogIndexEntry> mostRecentByAuthor;
-	private final Map<String, BlogIndexEntry> oldestByAuthor;
 	private final Map<String, Boolean> indexingComplete;
 
 	//TODO:
@@ -59,33 +62,6 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		return mostRecentByAuthor.get(author);
 	}
 	
-	/**
-	 * @param author
-	 * @return
-	 */
-	public BlogIndexEntry getOldestEntry(String author) {
-		return oldestByAuthor.get(author);
-	}
-	
-	/**
-	 * List of authors sorted by their oldest indexed posts, date descending
-	 * @return
-	 */
-	public List<String> getOldestDateSortedAuthors() {
-		List<String> authors = new ArrayList<>(oldestByAuthor.keySet());
-		Collections.sort(authors, (a, b) -> {
-			BlogIndexEntry ea = oldestByAuthor.get(a);
-			BlogIndexEntry eb = oldestByAuthor.get(b);
-			if (ea != null && eb != null) {
-				if (!ea.getCreated().equals(eb.getCreated())) {
-					return -ea.getCreated().compareTo(eb.getCreated());
-				}
-			}
-			return a.compareToIgnoreCase(b);
-		});
-		return authors;
-	}
-	
 	public boolean isIndexingComplete(String author) {
 		return indexingComplete.containsKey(author)?indexingComplete.get(author):false;
 	}
@@ -95,7 +71,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	}
 
 	/**
-	 * List of authors sorted by their newest indexed posts, date descending
+	 * List of authors sorted by their newest NSFW only indexed posts, date descending
 	 * @return
 	 */
 	public List<String> getNewestDateSortedAuthors() {
@@ -210,7 +186,6 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		byTag = new HashMap<>();
 		authors = new TreeSet<>();
 		mostRecentByAuthor = new HashMap<>();
-		oldestByAuthor=new HashMap<>();
 		indexingComplete = new HashMap<>();
 	}
 
@@ -228,19 +203,13 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				tags.add(tag);
 			}
 		}
+		authors.add(username);
 		final Date created = entry.getCreated();
-		//keep track of oldest post, reblog or not (for use by paginated indexing)
-		if (created!=null) {
-			BlogIndexEntry prev = oldestByAuthor.get(username);
-			if (prev == null || created.before(prev.getCreated())) {
-				oldestByAuthor.put(username, entry);
-			}
-		}
 		//don't index reblogs
 		if (username.equals(entry.getAuthor())) {
-			authors.add(username);
 			tags.add("@" + username);
-			if (created != null) {
+			//Only use the most recent NSFW post for recent by author listing
+			if (created != null && tags.contains("nsfw")) {
 				BlogIndexEntry prev = mostRecentByAuthor.get(username);
 				if (prev == null || created.after(prev.getCreated())) {
 					mostRecentByAuthor.put(username, entry);

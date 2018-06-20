@@ -70,9 +70,6 @@ public class AppController implements GlobalAsyncEventBus {
 		this.notTags.remove(event.getTag());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
-		if (event.getTag().startsWith("@")) {
-			fireEvent(new Event.IndexBlog(event.getTag().substring(1)));
-		}
 	}
 	
 	@EventHandler

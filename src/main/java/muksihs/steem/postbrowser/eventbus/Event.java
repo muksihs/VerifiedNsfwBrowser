@@ -15,17 +15,6 @@ public interface Event {
 
 	}
 
-	public class IndexBlog extends GenericEvent {
-		private final String author;
-		public IndexBlog(String author) {
-			this.author=author;
-		}
-		public String getAuthor() {
-			return author;
-		}
-
-	}
-
 	public class SetModalImage extends GenericEvent {
 		
 		private final BlogIndexEntry zoomPreview;

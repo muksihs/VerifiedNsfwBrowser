@@ -240,10 +240,6 @@ public class SteemApi {
 		}
 	}
 
-	// public static interface HashMapMapper extends ObjectMapper<HashMap<String,
-	// Object>> {
-	// }
-
 	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
 	}
 

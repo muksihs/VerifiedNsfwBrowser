@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class Vote {
 	private String voter;
-	private Long weight;
+	private BigInteger weight;
 	private BigInteger rshares;
-	private Long percent;
+	private BigInteger percent;
 	private BigInteger reputation;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone="UTC")
 	private Date time;
@@ -19,10 +19,10 @@ public class Vote {
 	public void setVoter(String voter) {
 		this.voter = voter;
 	}
-	public Long getWeight() {
+	public BigInteger getWeight() {
 		return weight;
 	}
-	public void setWeight(Long weight) {
+	public void setWeight(BigInteger weight) {
 		this.weight = weight;
 	}
 	public BigInteger getRshares() {
@@ -31,10 +31,10 @@ public class Vote {
 	public void setRshares(BigInteger rshares) {
 		this.rshares = rshares;
 	}
-	public Long getPercent() {
+	public BigInteger getPercent() {
 		return percent;
 	}
-	public void setPercent(Long percent) {
+	public void setPercent(BigInteger percent) {
 		this.percent = percent;
 	}
 	public BigInteger getReputation() {

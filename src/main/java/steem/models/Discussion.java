@@ -43,8 +43,8 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	@JsonProperty("last_payout")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
 	private Date lastPayout;
-	private Long depth;
-	private Long children;
+	private BigInteger depth;
+	private BigInteger children;
 	@JsonProperty("net_rshares")
 	private BigInteger netRshares;
 	@JsonProperty("abs_rshares")
@@ -60,17 +60,17 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
 	private Date maxCashoutTime;
 	@JsonProperty("total_vote_weight")
-	private Long totalVoteWeight;
+	private BigInteger totalVoteWeight;
 	@JsonProperty("reward_weight")
-	private Long rewardWeight;
+	private BigInteger rewardWeight;
 	@JsonProperty("total_payout_value")
 	private SimpleAsset totalPayoutValue;
 	@JsonProperty("curator_payout_value")
 	private SimpleAsset curatorPayoutValue;
 	@JsonProperty("author_rewards")
-	private Long authorRewards;
+	private BigInteger authorRewards;
 	@JsonProperty("net_votes")
-	private Long netVotes;
+	private BigInteger netVotes;
 	@JsonProperty("root_author")
 	private String rootAuthor;
 	@JsonProperty("root_permlink")
@@ -78,7 +78,7 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	@JsonProperty("max_accepted_payout")
 	private SimpleAsset maxAcceptedPayout;
 	@JsonProperty("percent_steem_dollars")
-	private Long percentSteemDollars;
+	private BigInteger percentSteemDollars;
 	@JsonProperty("allow_replies")
 	private Boolean allowReplies;
 	@JsonProperty("allow_votes")
@@ -100,7 +100,7 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	private BigInteger authorReputation;
 	private SimpleAsset promoted;
 	@JsonProperty("body_length")
-	private Long bodyLength;
+	private BigInteger bodyLength;
 	@JsonProperty("reblogged_by")
 	private List<String> rebloggedBy;
 	public BigInteger getId() {
@@ -181,16 +181,16 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setLastPayout(Date lastPayout) {
 		this.lastPayout = lastPayout;
 	}
-	public Long getDepth() {
+	public BigInteger getDepth() {
 		return depth;
 	}
-	public void setDepth(Long depth) {
+	public void setDepth(BigInteger depth) {
 		this.depth = depth;
 	}
-	public Long getChildren() {
+	public BigInteger getChildren() {
 		return children;
 	}
-	public void setChildren(Long children) {
+	public void setChildren(BigInteger children) {
 		this.children = children;
 	}
 	public BigInteger getNetRshares() {
@@ -229,16 +229,16 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setMaxCashoutTime(Date maxCashoutTime) {
 		this.maxCashoutTime = maxCashoutTime;
 	}
-	public Long getTotalVoteWeight() {
+	public BigInteger getTotalVoteWeight() {
 		return totalVoteWeight;
 	}
-	public void setTotalVoteWeight(Long totalVoteWeight) {
+	public void setTotalVoteWeight(BigInteger totalVoteWeight) {
 		this.totalVoteWeight = totalVoteWeight;
 	}
-	public Long getRewardWeight() {
+	public BigInteger getRewardWeight() {
 		return rewardWeight;
 	}
-	public void setRewardWeight(Long rewardWeight) {
+	public void setRewardWeight(BigInteger rewardWeight) {
 		this.rewardWeight = rewardWeight;
 	}
 	public SimpleAsset getTotalPayoutValue() {
@@ -253,16 +253,16 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setCuratorPayoutValue(SimpleAsset curatorPayoutValue) {
 		this.curatorPayoutValue = curatorPayoutValue;
 	}
-	public Long getAuthorRewards() {
+	public BigInteger getAuthorRewards() {
 		return authorRewards;
 	}
-	public void setAuthorRewards(Long authorRewards) {
+	public void setAuthorRewards(BigInteger authorRewards) {
 		this.authorRewards = authorRewards;
 	}
-	public Long getNetVotes() {
+	public BigInteger getNetVotes() {
 		return netVotes;
 	}
-	public void setNetVotes(Long netVotes) {
+	public void setNetVotes(BigInteger netVotes) {
 		this.netVotes = netVotes;
 	}
 	public String getRootAuthor() {
@@ -283,10 +283,10 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setMaxAcceptedPayout(SimpleAsset maxAcceptedPayout) {
 		this.maxAcceptedPayout = maxAcceptedPayout;
 	}
-	public Long getPercentSteemDollars() {
+	public BigInteger getPercentSteemDollars() {
 		return percentSteemDollars;
 	}
-	public void setPercentSteemDollars(Long percentSteemDollars) {
+	public void setPercentSteemDollars(BigInteger percentSteemDollars) {
 		this.percentSteemDollars = percentSteemDollars;
 	}
 	public Boolean getAllowReplies() {
@@ -361,10 +361,10 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setPromoted(SimpleAsset promoted) {
 		this.promoted = promoted;
 	}
-	public Long getBodyLength() {
+	public BigInteger getBodyLength() {
 		return bodyLength;
 	}
-	public void setBodyLength(Long bodyLength) {
+	public void setBodyLength(BigInteger bodyLength) {
 		this.bodyLength = bodyLength;
 	}
 	public List<String> getRebloggedBy() {
