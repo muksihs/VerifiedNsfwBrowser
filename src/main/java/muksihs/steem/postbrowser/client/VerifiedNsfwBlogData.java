@@ -24,9 +24,10 @@ import muksihs.steem.postbrowser.eventbus.Event;
 import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 import muksihs.steem.postbrowser.shared.BlogIndex;
 import muksihs.steem.postbrowser.shared.BlogIndexEntry;
+import steem.MapperCallback;
+import steem.MapperCallback.DiscussionsCallback;
+import steem.MapperCallback.FollowingListCallback;
 import steem.SteemApi;
-import steem.SteemApi.DiscussionsCallback;
-import steem.SteemApi.FollowingListCallback;
 import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
 import steem.models.Discussions;
@@ -70,14 +71,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	protected VerifiedNsfwBlogData() {
 		index = new BlogIndex();
-		oldestByAuthor = new HashMap<>();
+		postsByAuthor = new HashMap<>();
 	}
 
 	/**
 	 * keep copy of "oldest" by list order post so that indexing can continue where
 	 * it left off
 	 */
-	private final Map<String, BlogIndexEntry> oldestByAuthor;
+	private final Map<String, List<BlogIndexEntry>> postsByAuthor;
 
 	protected void indexBlogEntries(String username, Discussions result) {
 		if (result == null) {
@@ -91,7 +92,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			entry.setPermlink(discussion.getPermlink());
 			entry.setTitle(discussion.getTitle());
 			parseMetadata: try {
-				DiscussionMetadata metadata = SteemApi.discussionMetadataMapper.read(discussion.getJsonMetadata());
+				DiscussionMetadata metadata = MapperCallback.discussionMetadataMapper.read(discussion.getJsonMetadata());
 				if (metadata == null) {
 					break parseMetadata;
 				}
@@ -201,7 +202,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		if (!entries.isEmpty()) {
 			BlogIndexEntry oldestBlogIndexEntry = entries.get(entries.size()-1);
-			oldestByAuthor.put(username, oldestBlogIndexEntry);
+			List<BlogIndexEntry> list = postsByAuthor.get(username);
+			if (list==null) {
+				postsByAuthor.put(username, list=new ArrayList<>());
+			}
+			list.addAll(entries);
 			index.addAll(username, entries);
 		}
 	};
@@ -259,9 +264,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		fireEvent(new Event.UpdatedPreviewList(list));
 		Set<String> tags = index.getTags();
-//		for (String author : index.getAuthors()) {
-//			tags.add("@" + author);
-//		}
 		fireEvent(new Event.SetAvailableTags(tags));
 	}
 
@@ -275,7 +277,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		MaterialToast.fireToast("Loading Verified NSFW Account List", 1000);
 		fireEvent(new Event.ShowLoading(true));
 		Set<String> list = new TreeSet<>();
-		int limit = 10;
+		int limit = 100;
 		FollowingListCallback cb = new FollowingListCallback() {
 			private final FollowingListCallback cb = this;
 
@@ -324,16 +326,25 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			}
 		}
 		if (list.isEmpty()) {
+			fireEvent(event);
 			return;
 		}
 		additionalIndexBlogs(list.listIterator());
 	}
 	
+	private BlogIndexEntry getOldestPostByAuthor(String author) {
+		List<BlogIndexEntry> entries = postsByAuthor.get(author);
+		if (entries==null||entries.isEmpty()) {
+			return null;
+		}
+		return entries.get(entries.size()-1);
+	}
+	
 	public List<String> getOldestDateSortedAuthors() {
-		List<String> authors = new ArrayList<>(oldestByAuthor.keySet());
+		List<String> authors = new ArrayList<>(postsByAuthor.keySet());
 		Collections.sort(authors, (a, b) -> {
-			BlogIndexEntry ea = oldestByAuthor.get(a);
-			BlogIndexEntry eb = oldestByAuthor.get(b);
+			BlogIndexEntry ea = getOldestPostByAuthor(a);
+			BlogIndexEntry eb = getOldestPostByAuthor(b);
 			if (ea != null && eb != null) {
 				if (!ea.getCreated().equals(eb.getCreated())) {
 					return -ea.getCreated().compareTo(eb.getCreated());
@@ -385,7 +396,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			}
 		};
 		timerGetDiscussionsByBlogFailsafe.schedule(10000);
-		BlogIndexEntry oldestPost = oldestByAuthor.get(username);
+		BlogIndexEntry oldestPost = getOldestPostByAuthor(username);
 		if (oldestPost == null) {
 			additionalIndexBlogs(iList);
 			return;
@@ -399,11 +410,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 				if (result != null) {
 					indexBlogEntries(username, result);
-					if (result.getList().size() < 2) {
+					if (result.getList().size() == 1) {
 						index.setIndexingComplete(username, true);
-						DomGlobal.console.log("=====================");
-						DomGlobal.console.log("Indexing complete for @" + username);
-						DomGlobal.console.log("=====================");
+						DomGlobal.console.log("=== Indexing complete for @" + username);
 					}
 				}
 				new Timer() {
@@ -411,12 +420,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					public void run() {
 						additionalIndexBlogs(iList);
 					}
-				}.schedule(1000);
+				}.schedule(250);
 			}
 		};
-		int count;
-		count = 100;
-		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), count, cb);
+		int limit = 10;
+		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 	}
 
 	private void indexBlogs(ListIterator<String> iList) {
@@ -445,8 +453,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int count = 10;
-		SteemApi.getDiscussionsByBlog(username, count, cb);
+		int limit = 3;
+		SteemApi.getDiscussionsByBlog(username, limit, cb);
 	}
 
 	@EventHandler

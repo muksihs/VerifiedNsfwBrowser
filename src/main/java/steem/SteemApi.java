@@ -14,11 +14,12 @@ import elemental2.dom.DomGlobal;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsType;
+import steem.MapperCallback.DiscussionsCallback;
+import steem.MapperCallback.FollowingListCallback;
+import steem.MapperCallback.TrendingTagsCallback;
+import steem.MapperCallback.UserAccountInfoListCallback;
 import steem.models.Discussion;
-import steem.models.DiscussionMetadata;
 import steem.models.Discussions;
-import steem.models.FollowingList;
-import steem.models.TrendingTags;
 import steem.models.UserAccountInfo;
 
 @JsType(namespace = "steem", name = "api", isNative = true)
@@ -89,16 +90,6 @@ public class SteemApi {
 		_getContent(username, permlink, parseCb);
 	}
 
-	public static interface FollowingListMapper extends ObjectMapper<FollowingList> {
-	}
-
-	public static interface FollowingListCallback extends SteemTypedCallback<FollowingList, FollowingListMapper> {
-		@Override
-		default FollowingListMapper mapper() {
-			return GWT.create(FollowingListMapper.class);
-		}
-	}
-
 	@JsMethod(name = "getFollowing")
 	private static native void _getFollowing(String username, String startFollowing, String followType, int limit,
 			SteemJsCallback jsCallback);
@@ -119,16 +110,6 @@ public class SteemApi {
 		_getTrendingTags(afterTag, limit, (error, result) -> {
 			callback.onResult(error, result);
 		});
-	}
-
-	public static interface TrendingTagsMapper extends ObjectMapper<TrendingTags> {
-	}
-
-	public static interface TrendingTagsCallback extends SteemTypedListCallback<TrendingTags, TrendingTagsMapper> {
-		@Override
-		default TrendingTagsMapper mapper() {
-			return GWT.create(TrendingTagsMapper.class);
-		}
 	}
 
 	@JsMethod(name = "getDiscussionsByBlog")
@@ -217,17 +198,6 @@ public class SteemApi {
 		_getAccounts(new String[] { username }, (error, result) -> callback.onResult(error, result));
 	}
 
-	public static interface UserAccountInfoListCallback
-			extends SteemTypedListCallback<UserAccountInfoList, UserAccountInfoListMapper> {
-		@Override
-		default UserAccountInfoListMapper mapper() {
-			return GWT.create(UserAccountInfoListMapper.class);
-		}
-	}
-
-	public static interface UserAccountInfoListMapper extends ObjectMapper<UserAccountInfoList> {
-	}
-
 	public static class UserAccountInfoList {
 		private List<UserAccountInfo> list;
 
@@ -239,22 +209,6 @@ public class SteemApi {
 			this.list = list;
 		}
 	}
-
-	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
-	}
-
-	public static interface DiscussionsCallback extends SteemTypedListCallback<Discussions, DiscussionsMapper> {
-		@Override
-		default DiscussionsMapper mapper() {
-			return GWT.create(DiscussionsMapper.class);
-		}
-	}
-
-	public static interface DiscussionMetadataMapper extends ObjectMapper<DiscussionMetadata> {
-	}
-
-	@JsOverlay
-	public static DiscussionMetadataMapper discussionMetadataMapper = GWT.create(DiscussionMetadataMapper.class);
 
 	public static class Util {
 		// old
