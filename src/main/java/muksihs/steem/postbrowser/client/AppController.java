@@ -246,7 +246,6 @@ public class AppController implements GlobalAsyncEventBus {
 				String publicWif = keylist.getPublicKey();
 				try {
 					if (!SteemAuth.wifIsValid(wif, publicWif)) {
-						new AccountCache().remove(DEFAULT_USER);
 						if (!event.isSilent()) {
 							fireEvent(new Event.AlertMessage("THAT IS NOT YOUR PRIVATE POSTING KEY"));
 						}
