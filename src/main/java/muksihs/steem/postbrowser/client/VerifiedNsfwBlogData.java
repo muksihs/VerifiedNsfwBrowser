@@ -431,7 +431,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		if (!iList.hasNext()) {
 			fireEvent(new Event.ShowLoading(false));
 			fireEvent(new Event.StartBackgroundIndexing());
-			MaterialToast.fireToast("Starting Additional Indexing in the Background", 1000);
+			MaterialToast.fireToast("Initial Indexing Complete", 1000);
+			MaterialToast.fireToast("Starting Additional Indexing in the Background", 1100);
 			return;
 		}
 		final String username = iList.next();
@@ -463,10 +464,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		if (list == null || list.isEmpty()) {
 			return;
 		}
-		fireEvent(new Event.ShowLoading(true));
+		fireEvent(new Event.ShowLoading(false));
 		final ListIterator<String> iList = new ArrayList<>(list).listIterator();
 		indexBlogs(iList);
-		MaterialToast.fireToast("Loading and Tag Indexing Blogs", 1000);
+		MaterialToast.fireToast("Loading and Tag Indexing Blogs", 1900);
+		MaterialToast.fireToast("Display Will Dynamically Update", 2000);
 	}
 
 	public static interface Mapper extends ObjectMapper<Discussion> {
