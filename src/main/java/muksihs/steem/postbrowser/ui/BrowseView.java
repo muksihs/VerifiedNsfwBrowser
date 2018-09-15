@@ -12,6 +12,7 @@ import com.google.gwt.dom.client.Style.VerticalAlign;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.web.bindery.event.shared.binder.EventBinder;
@@ -23,13 +24,12 @@ import gwt.material.design.client.constants.Display;
 import gwt.material.design.client.constants.TextAlign;
 import gwt.material.design.client.ui.MaterialAnchorButton;
 import gwt.material.design.client.ui.MaterialButton;
-import gwt.material.design.client.ui.MaterialCollapsible;
-import gwt.material.design.client.ui.MaterialCollapsibleItem;
 import gwt.material.design.client.ui.MaterialImage;
 import gwt.material.design.client.ui.MaterialLabel;
 import gwt.material.design.client.ui.MaterialLink;
 import gwt.material.design.client.ui.MaterialModal;
 import gwt.material.design.client.ui.MaterialPanel;
+import gwt.material.design.client.ui.MaterialTitle;
 import gwt.material.design.client.ui.html.Br;
 import muksihs.steem.postbrowser.client.Util;
 import muksihs.steem.postbrowser.eventbus.Event;
@@ -41,10 +41,11 @@ public class BrowseView extends EventBusComposite {
 	@UiField
 	protected MaterialPanel posts;
 	@UiField
-	protected MaterialPanel filterTags;
+	protected MaterialButton activeTags;
 	@UiField
-	protected MaterialPanel availableTags;
-
+	protected MaterialButton availableTags;
+	@UiField
+	protected MaterialLabel indexingUsername;
 	@UiField
 	protected MaterialButton loadFilter;
 	@UiField
@@ -63,9 +64,6 @@ public class BrowseView extends EventBusComposite {
 	@UiField
 	protected MaterialButton nextBtm;
 
-	@UiField
-	protected MaterialCollapsibleItem filterTagsItem;
-
 	private static BrowseViewUiBinder uiBinder = GWT.create(BrowseViewUiBinder.class);
 
 	interface BrowseViewUiBinder extends UiBinder<Widget, BrowseView> {
@@ -80,14 +78,6 @@ public class BrowseView extends EventBusComposite {
 	}
 
 	public BrowseView() {
-		tags = new MaterialCollapsible() {
-			@Override
-			public void reload() {
-				GWT.log("#reload");
-				super.reload();
-				reloadAvailableTagsView();
-			}
-		};
 		initWidget(uiBinder.createAndBindUi(this));
 		previous.addClickHandler(this::getPrevious);
 		next.addClickHandler(this::getNext);
@@ -98,6 +88,9 @@ public class BrowseView extends EventBusComposite {
 
 		loadFilter.addClickHandler((e) -> fireEvent(new Event.LoadFilter()));
 		saveFilter.addClickHandler((e) -> fireEvent(new Event.SaveFilter()));
+
+		availableTags.addClickHandler((e) -> fireEvent(new Event.ShowAvailableTagDialog(availableTagSet)));
+		activeTags.addClickHandler((e) -> fireEvent(new Event.ShowActiveTagDialog(activeTagSet)));
 
 		loadFilter.setDisplay(Display.NONE);
 		saveFilter.setDisplay(Display.NONE);
@@ -117,8 +110,23 @@ public class BrowseView extends EventBusComposite {
 		fireEvent(new Event.BrowseViewLoaded());
 	}
 
-	@UiField(provided = true)
-	protected MaterialCollapsible tags;
+	private Timer clearIndexingStatus = null;
+
+	@EventHandler
+	protected void onIndexingUser(Event.ShowIndexing event) {
+		if (clearIndexingStatus != null) {
+			clearIndexingStatus.cancel();
+			clearIndexingStatus = null;
+		}
+		clearIndexingStatus=new Timer() {
+			@Override
+			public void run() {
+				indexingUsername.setText("");
+			}
+		};
+		clearIndexingStatus.schedule(6000);
+		indexingUsername.setText("Scanning blog: @"+event.getUsername());
+	}
 
 	@EventHandler
 	protected void onEnablePreviousButton(Event.EnablePreviousButton event) {
@@ -138,47 +146,107 @@ public class BrowseView extends EventBusComposite {
 	protected void onSetAvailableTags(Event.SetAvailableTags event) {
 		availableTagSet.clear();
 		availableTagSet.addAll(event.getTags());
-		// TODO: add additional tags to end of display
-		if (!filterTagsItem.isActive()) {
-			reloadAvailableTagsView();
-		}
 	}
 
-	private void reloadAvailableTagsView() {
+	// availableTags.addClickHandler((e)->fireEvent(new
+	// Event.ShowAvailableTagDialog(availableTagSet)));
+	// activeTags.addClickHandler((e)->fireEvent(new
+	// Event.ShowActiveTagDialog(activeTagSet)));
+	@EventHandler
+	protected void showAvailableTagDialog(Event.ShowAvailableTagDialog event) {
+
+		MaterialModal dialog = new MaterialModal();
+
+		dialog.setDismissible(true);
+		MaterialTitle title = new MaterialTitle();
+		title.setTitle("Available Tags");
+		title.setMarginTop(-50);
+		dialog.setTitle("Available Tags");
+		dialog.add(title);
+
+		dialog.addCloseHandler((e) -> dialog.removeFromParent());
+		MaterialPanel buttons = new MaterialPanel();
+		buttons.setTextAlign(TextAlign.CENTER);
+		MaterialButton cancel = new MaterialButton("Cancel");
+		cancel.addClickHandler((e) -> dialog.close());
+		cancel.setMargin(2);
+		buttons.add(cancel);
+
 		MaterialPanel panel = new MaterialPanel();
-		for (String tag : availableTagSet) {
+		Set<String> tmpTags = new TreeSet<>(event.getTags());
+		for (String tag : tmpTags) {
 			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-			if (tag.startsWith("-") || tag.startsWith("+")) {
+			if (activeTagSet.contains(tag)) {
 				tagLabel.setEnabled(false);
 			} else {
-				tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
+				tagLabel.addClickHandler((e) -> {
+					showAddToFilterDialog(tag);
+					dialog.close();
+				});
 			}
 			tagLabel.setMargin(1);
 			panel.add(tagLabel);
 		}
-		availableTags.clear();
-		availableTags.add(panel);
+		dialog.add(panel);
+		dialog.add(buttons);
+		RootPanel.get().add(dialog);
+		dialog.open();
 	}
 
-	private final Set<String> activeFilterTags = new TreeSet<>();
-
 	@EventHandler
-	protected void showFilterTags(Event.ShowFilterTags event) {
-		filterTags.clear();
-		activeFilterTags.clear();
-		for (String tag : event.getTags()) {
-			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-			tagLabel.addClickHandler((e) -> showRemoveFromFilterDialog(tag));
-			tagLabel.setMargin(1);
-			if (tag.startsWith("-")) {
-				tagLabel.setBackgroundColor(Color.RED);
-			}
+	protected void showActiveTagDialog(Event.ShowActiveTagDialog event) {
+		MaterialModal dialog = new MaterialModal();
+
+		dialog.setDismissible(true);
+		MaterialTitle title = new MaterialTitle();
+		title.setTitle("Active Filter Tags");
+		title.setMarginTop(-50);
+		dialog.setTitle("Active Filter Tags");
+		dialog.add(title);
+
+		dialog.addCloseHandler((e) -> dialog.removeFromParent());
+		MaterialPanel buttons = new MaterialPanel();
+		buttons.setTextAlign(TextAlign.CENTER);
+		MaterialButton cancel = new MaterialButton("Cancel");
+		cancel.addClickHandler((e) -> dialog.close());
+		cancel.setMargin(2);
+		buttons.add(cancel);
+
+		MaterialPanel panel = new MaterialPanel();
+		Set<String> tmpTags = new TreeSet<>(event.getTags());
+		for (String tag : tmpTags) {
+			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag.substring(1));
 			if (tag.startsWith("+")) {
 				tagLabel.setBackgroundColor(Color.GREEN);
 			}
-			filterTags.add(tagLabel);
-			activeFilterTags.add(tag);
+			if (tag.startsWith("-")) {
+				tagLabel.setBackgroundColor(Color.RED);
+			}
+			tagLabel.addClickHandler((e) -> {
+				showRemoveFromFilterDialog(tag);
+				dialog.close();
+			});
+			tagLabel.setMargin(1);
+			panel.add(tagLabel);
 		}
+		dialog.add(panel);
+		dialog.add(buttons);
+		RootPanel.get().add(dialog);
+		dialog.open();
+	}
+
+	private final Set<String> activeTagSet = new TreeSet<>();
+
+	@EventHandler
+	protected void setActiveTagSet(Event.SetActiveTagSet event) {
+		activeTagSet.clear();
+		activeTagSet.addAll(event.getTags());
+	}
+
+	@EventHandler
+	protected void setEditFilterUiState(Event.UpdateEditActiveFilterState event) {
+		clearFilter.setEnabled(event.isActiveFilter());
+		activeTags.setEnabled(event.isActiveFilter());
 	}
 
 	private Void showRemoveFromFilterDialog(String tag) {
@@ -187,7 +255,7 @@ public class BrowseView extends EventBusComposite {
 		dialog.setTitle("Remove From Filter");
 		MaterialPanel buttons = new MaterialPanel();
 		buttons.setTextAlign(TextAlign.CENTER);
-		MaterialButton remove = new MaterialButton("Remove From Filter: " + tag);
+		MaterialButton remove = new MaterialButton("Remove From Filter: " + tag.substring(1));
 		MaterialButton cancel = new MaterialButton("Cancel");
 		remove.addClickHandler((e) -> {
 			GWT.log("DO remove from filter: " + tag);
@@ -205,20 +273,20 @@ public class BrowseView extends EventBusComposite {
 		return null;
 	}
 
-	@EventHandler
-	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
-		tags.closeAll();
-	}
-
-	@EventHandler
-	protected void onAddToIncludeFilter(Event.AddToExcludeFilter event) {
-		tags.closeAll();
-	}
-
-	@EventHandler
-	protected void onAddToIncludeFilter(Event.RemoveFromFilter event) {
-		tags.closeAll();
-	}
+	// @EventHandler
+	// protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
+	// tags.closeAll();
+	// }
+	//
+	// @EventHandler
+	// protected void onAddToIncludeFilter(Event.AddToExcludeFilter event) {
+	// tags.closeAll();
+	// }
+	//
+	// @EventHandler
+	// protected void onAddToIncludeFilter(Event.RemoveFromFilter event) {
+	// tags.closeAll();
+	// }
 
 	private Void showAddToFilterDialog(String tag) {
 		MaterialModal dialog = new MaterialModal();
@@ -381,7 +449,7 @@ public class BrowseView extends EventBusComposite {
 			tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
 			tagLabel.addClickHandler((e) -> modal.close());
 			tagLabel.setMargin(1);
-			if (activeFilterTags.contains("+" + tag)) {
+			if (activeTagSet.contains("+" + tag)) {
 				tagLabel.setEnabled(false);
 				tagLabel.setBackgroundColor(Color.LIGHT_GREEN);
 			}

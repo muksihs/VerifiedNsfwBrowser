@@ -70,14 +70,16 @@ public class AppController implements GlobalAsyncEventBus {
 		this.notTags.remove(event.getTag());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		fireEvent(new Event.MostRecentSet());
 	}
-	
+
 	@EventHandler
 	protected void onAddToExcludeFilter(Event.AddToExcludeFilter event) {
 		this.notTags.add(event.getTag());
 		this.haveTags.remove(event.getTag());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		fireEvent(new Event.MostRecentSet());
 	}
 	
 	@EventHandler
@@ -91,7 +93,9 @@ public class AppController implements GlobalAsyncEventBus {
 		DomGlobal.console.log("#onRemoveFromFilter", "HAVE TAGS: ", haveTags.toString(), "NOT TAGS: ", notTags.toString(), filterMode.name());
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();
+		fireEvent(new Event.MostRecentSet());
 	}
+	
 	
 	private void updateActiveTagsDisplay() {
 		Collection<String> tags=new TreeSet<>();
@@ -101,7 +105,7 @@ public class AppController implements GlobalAsyncEventBus {
 		for (String tag: notTags) {
 			tags.add("-"+tag);
 		}
-		fireEvent(new Event.ShowFilterTags(tags));
+		fireEvent(new Event.SetActiveTagSet(tags));
 	}
 	
 	@EventHandler
@@ -345,7 +349,9 @@ public class AppController implements GlobalAsyncEventBus {
 	protected void onClearSearch(Event.ClearSearch event) {
 		haveTags.clear();
 		notTags.clear();
+		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
+		fireEvent(new Event.MostRecentSet());
 	}
 	@EventHandler
 	protected void zoomImage(Event.ZoomImage event) {

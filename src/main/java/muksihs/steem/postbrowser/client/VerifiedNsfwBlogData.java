@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.github.nmorel.gwtjackson.client.exception.JsonDeserializationException;
 import com.google.gwt.core.client.GWT;
@@ -35,8 +37,6 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-	private static final String URL_PATTERN_DPORN1 = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?dporn.co/[^/]*?/[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
-	private static final String URL_PATTERN_DPORN2 = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?dporn.co/[^/]*?/@[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
 	private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
 	private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
 	private final BlogIndex index;
@@ -178,20 +178,31 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 			}
 			dporn: if (body.contains("dporn.co/") && discussion.getJsonMetadata().contains("dporn")) {
-				if (body.matches(URL_PATTERN_DPORN2)) {
+				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
+				String[] tmpLines = tmpBody.split("\n");
+				String tmpUrl = "";
+				for (String tmpLine: tmpLines) {
+					if (!tmpLine.toLowerCase().contains("<a")){
+						continue;
+					}
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+					if (tmpLine.length()>tmpUrl.length()) {
+						tmpUrl = tmpLine;
+					}
+				}
+				if (!tmpUrl.trim().isEmpty()) {
 					entry.setCustomUrlName("DPORN");
-					String tmp = body;
-					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN2, "$1"));
+					entry.setCustomUrl(tmpUrl);
 					break dporn;
 				}
-				if (body.matches(URL_PATTERN_DPORN1)) {
-					entry.setCustomUrlName("DPORN");
-					String tmp = body;
-					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DPORN1, "$1"));
-					break dporn;
-				}
+				break dporn;
 			}
-			if (body.contains("https://d.tube/#!") && discussion.getJsonMetadata().contains("videohash")) {
+			if (body.contains("d.tube/") && discussion.getJsonMetadata().contains("videohash")) {
 				if (body.matches(URL_PATTERN_DTUBE)) {
 					entry.setCustomUrlName("DTUBE");
 					String tmp = body;
@@ -244,7 +255,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
-		if (!event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty()) {
+		boolean filterActive = !event.getHaveTags().isEmpty()||!event.getNotTags().isEmpty();
+		fireEvent(new Event.UpdateEditActiveFilterState(filterActive));
+		if (filterActive) {
 			List<BlogIndexEntry> list = index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
 			fireEvent(new Event.UpdatedPreviewList(list));
 			Set<String> availableTags = new TreeSet<>();
@@ -425,6 +438,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		};
 		int limit = 10;
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
+		fireEvent(new Event.ShowIndexing(username));
 	}
 
 	private void indexBlogs(ListIterator<String> iList) {
@@ -456,6 +470,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		};
 		int limit = 3;
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
+		fireEvent(new Event.ShowIndexing(username));
 	}
 
 	@EventHandler
