@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.github.nmorel.gwtjackson.client.exception.JsonDeserializationException;
 import com.google.gwt.core.client.GWT;
@@ -436,7 +434,10 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(250);
 			}
 		};
-		int limit = 10;
+		int limit = 20;
+		if (Util.isSdm()) {
+			limit = 5;
+		}
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -468,7 +469,10 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int limit = 3;
+		int limit = 10;
+		if (Util.isSdm()) {
+			limit = 3;
+		}
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
