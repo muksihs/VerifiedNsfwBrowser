@@ -445,11 +445,12 @@ public class BrowseView extends EventBusComposite {
 		modal.addCloseHandler((e) -> modal.removeFromParent());
 		MaterialPanel panel = new MaterialPanel();
 		for (String tag : previewTags) {
-			MaterialAnchorButton tagLabel = new MaterialAnchorButton(tag);
-			tagLabel.addClickHandler((e) -> showAddToFilterDialog(tag));
+			String lcTag = tag.toLowerCase();
+			MaterialAnchorButton tagLabel = new MaterialAnchorButton(lcTag);
+			tagLabel.addClickHandler((e) -> showAddToFilterDialog(lcTag));
 			tagLabel.addClickHandler((e) -> modal.close());
 			tagLabel.setMargin(1);
-			if (activeTagSet.contains("+" + tag)) {
+			if (activeTagSet.contains("+" + lcTag)) {
 				tagLabel.setEnabled(false);
 				tagLabel.setBackgroundColor(Color.LIGHT_GREEN);
 			}

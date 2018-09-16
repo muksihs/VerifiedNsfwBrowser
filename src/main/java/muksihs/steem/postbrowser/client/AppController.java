@@ -66,8 +66,8 @@ public class AppController implements GlobalAsyncEventBus {
 	
 	@EventHandler
 	protected void onAddToIncludeFilter(Event.AddToIncludeFilter event) {
-		this.haveTags.add(event.getTag());
-		this.notTags.remove(event.getTag());
+		this.haveTags.add(event.getTag().toLowerCase());
+		this.notTags.remove(event.getTag().toLowerCase());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		fireEvent(new Event.MostRecentSet());
@@ -75,8 +75,8 @@ public class AppController implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onAddToExcludeFilter(Event.AddToExcludeFilter event) {
-		this.notTags.add(event.getTag());
-		this.haveTags.remove(event.getTag());
+		this.notTags.add(event.getTag().toLowerCase());
+		this.haveTags.remove(event.getTag().toLowerCase());
 		updateActiveTagsDisplay();
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		fireEvent(new Event.MostRecentSet());
@@ -88,8 +88,8 @@ public class AppController implements GlobalAsyncEventBus {
 		if (tag.startsWith("-")||tag.startsWith("+")) {
 			tag=tag.substring(1);
 		}
-		this.haveTags.remove(tag);
-		this.notTags.remove(tag);
+		this.haveTags.remove(tag.toLowerCase());
+		this.notTags.remove(tag.toLowerCase());
 		DomGlobal.console.log("#onRemoveFromFilter", "HAVE TAGS: ", haveTags.toString(), "NOT TAGS: ", notTags.toString(), filterMode.name());
 		fireEvent(new Event.LoadUpdatePreviewList(filterMode, haveTags, notTags));
 		updateActiveTagsDisplay();

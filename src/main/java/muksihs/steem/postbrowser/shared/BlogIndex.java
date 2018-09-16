@@ -39,16 +39,15 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	}
 
 	public BlogIndexEntry getMostRecentEntry(String author) {
-		return mostRecentByAuthor.get(author.toLowerCase());
+		return mostRecentByAuthor.get(author);
 	}
 	
 	public boolean isIndexingComplete(String author) {
-		String lcAuthor = author.toLowerCase();
-		return indexingComplete.containsKey(lcAuthor)?indexingComplete.get(lcAuthor):false;
+		return indexingComplete.containsKey(author)?indexingComplete.get(author):false;
 	}
 	
 	public void setIndexingComplete(String author, boolean isIndexingComplete) {
-		indexingComplete.put(author.toLowerCase(), isIndexingComplete);
+		indexingComplete.put(author, isIndexingComplete);
 	}
 
 	/**
@@ -102,7 +101,7 @@ public class BlogIndex implements GlobalAsyncEventBus {
 			String lcFirstTag = iTags.next().toLowerCase();
 			list.addAll(byTag.get(lcFirstTag));
 			includeTagLoop: while (iTags.hasNext()) {
-				String lcTag = lcFirstTag;
+				String lcTag = iTags.next().toLowerCase();
 				Set<BlogIndexEntry> tmp = byTag.get(lcTag);
 				switch (mode) {
 				case AND:
@@ -140,12 +139,12 @@ public class BlogIndex implements GlobalAsyncEventBus {
 			Set<String> already = new HashSet<>();
 			Iterator<BlogIndexEntry> iList = list.iterator();
 			while (iList.hasNext()) {
-				String lcAuthor = iList.next().getAuthor().toLowerCase();
-				if (already.contains(lcAuthor)) {
+				String author = iList.next().getAuthor();
+				if (already.contains(author)) {
 					iList.remove();
 					continue;
 				}
-				already.add(lcAuthor);
+				already.add(author);
 			}
 		}
 		return list;
@@ -185,17 +184,16 @@ public class BlogIndex implements GlobalAsyncEventBus {
 				tags.add(lcTag);
 			}
 		}
-		String lcUsername = username.toLowerCase();
-		authors.add(lcUsername);
+		authors.add(username);
 		final Date created = entry.getCreated();
 		//don't index reblogs
-		if (lcUsername.equalsIgnoreCase(entry.getAuthor())) {
-			tags.add("@" + lcUsername);
+		if (username.equalsIgnoreCase(entry.getAuthor())) {
+			tags.add("@" + username.toLowerCase());
 			//Only use the most recent NSFW post for recent by author listing
 			if (created != null && tags.contains("nsfw")) {
-				BlogIndexEntry prev = mostRecentByAuthor.get(lcUsername);
+				BlogIndexEntry prev = mostRecentByAuthor.get(username);
 				if (prev == null || created.after(prev.getCreated())) {
-					mostRecentByAuthor.put(lcUsername, entry);
+					mostRecentByAuthor.put(username, entry);
 				}
 			}
 			ensureTagEntriesExist(tags);
