@@ -88,7 +88,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			entry.setPermlink(discussion.getPermlink());
 			entry.setTitle(discussion.getTitle());
 			parseMetadata: try {
-				DiscussionMetadata metadata = MapperCallback.discussionMetadataMapper.read(discussion.getJsonMetadata());
+				DiscussionMetadata metadata = MapperCallback.discussionMetadataMapper
+						.read(discussion.getJsonMetadata());
 				if (metadata == null) {
 					break parseMetadata;
 				}
@@ -140,7 +141,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 			// add body extracted images last (HTML <img ...>
 
-			if (body.matches("[\\s\\S]*<[iI][mM][gG][^>]+>[\\s\\S]*")) {
+			if (body.toLowerCase().contains("<img")) {
 				// strip all but tags
 				String tmp = body;
 				tmp = tmp.replaceAll("[^>]+<", "<");
@@ -165,65 +166,63 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 				}
 			}
-			//dlive.io
-			dlive: if (entry.getThumbnail() != null) {
-				if (entry.getThumbnail().matches("https?://.*?dlive.io/.*")) {
-					String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-					tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
-					String[] tmpLines = tmpBody.split("\n");
-					String tmpUrl = "";
-					//HTML <a style links
-					for (String tmpLine: tmpLines) {
-						if (!tmpLine.toLowerCase().contains("<a")){
-							continue;
-						}
-						if (!tmpLine.toLowerCase().contains("dlive.io/")) {
-							continue;
-						}
-						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
-						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
-						tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
-						tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-						tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-						if (tmpLine.length()>tmpUrl.length()) {
-							tmpUrl = tmpLine;
-						}
-					}
-					//Markdown ( style links
-					for (String tmpLine: tmpLines) {
-						if (!tmpLine.contains("(")){
-							continue;
-						}
-						String[] tmpLines2 = tmpLine.split("\\(");
-						for (String tmpLine2: tmpLines2) {
-							if (!tmpLine2.contains("http")){
-								continue;
-							}
-							if (!tmpLine2.toLowerCase().contains("dlive.io/")) {
-								continue;
-							}
-							tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-							tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-							if (tmpLine2.length()>tmpUrl.length()) {
-								tmpUrl = tmpLine2;
-							}
-						}
-					}
-					
-					if (!tmpUrl.trim().isEmpty()) {
-						entry.setCustomUrlName("DLive");
-						entry.setCustomUrl(tmpUrl);
-						break dlive;
-					}
-				}
-			}
-			dporn: if (body.contains("dporn.co/") && discussion.getJsonMetadata().contains("dporn")) {
+			// dlive.io
+			dlive: if (body.toLowerCase().contains("dlive.io")) {
 				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
+				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
 				String[] tmpLines = tmpBody.split("\n");
 				String tmpUrl = "";
-				for (String tmpLine: tmpLines) {
-					if (!tmpLine.toLowerCase().contains("<a")){
+				// HTML <a style links
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.toLowerCase().contains("<a")) {
+						continue;
+					}
+					if (!tmpLine.toLowerCase().contains("dlive.io/")) {
+						continue;
+					}
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+					if (tmpLine.length() > tmpUrl.length()) {
+						tmpUrl = tmpLine;
+					}
+				}
+				// Markdown ( style links
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.contains("(")) {
+						continue;
+					}
+					String[] tmpLines2 = tmpLine.split("\\(");
+					for (String tmpLine2 : tmpLines2) {
+						if (!tmpLine2.contains("http")) {
+							continue;
+						}
+						if (!tmpLine2.toLowerCase().contains("dlive.io/")) {
+							continue;
+						}
+						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine2.length() > tmpUrl.length()) {
+							tmpUrl = tmpLine2;
+						}
+					}
+				}
+
+				if (!tmpUrl.trim().isEmpty()) {
+					entry.setCustomUrlName("DLive");
+					entry.setCustomUrl(tmpUrl);
+					break dlive;
+				}
+			}
+			dporn: if (body.toLowerCase().contains("dporn.co/")) {
+				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
+				String[] tmpLines = tmpBody.split("\n");
+				String tmpUrl = "";
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.toLowerCase().contains("<a")) {
 						continue;
 					}
 					if (!tmpLine.toLowerCase().contains("dporn.co/")) {
@@ -233,27 +232,27 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
 					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
 					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-					if (tmpLine.length()>tmpUrl.length()) {
+					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+					if (tmpLine.length() > tmpUrl.length()) {
 						tmpUrl = tmpLine;
 					}
 				}
-				//Markdown ( style links
-				for (String tmpLine: tmpLines) {
-					if (!tmpLine.contains("(")){
+				// Markdown ( style links
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.contains("(")) {
 						continue;
 					}
 					String[] tmpLines2 = tmpLine.split("\\(");
-					for (String tmpLine2: tmpLines2) {
-						if (!tmpLine2.contains("http")){
+					for (String tmpLine2 : tmpLines2) {
+						if (!tmpLine2.contains("http")) {
 							continue;
 						}
 						if (!tmpLine2.toLowerCase().contains("dporn.co/")) {
 							continue;
 						}
 						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-						if (tmpLine2.length()>tmpUrl.length()) {
+						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine2.length() > tmpUrl.length()) {
 							tmpUrl = tmpLine2;
 						}
 					}
@@ -265,13 +264,13 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 				break dporn;
 			}
-			dtube: if (body.contains("d.tube/") && discussion.getJsonMetadata().contains("videohash")) {
+			dtube: if (body.toLowerCase().contains("d.tube/")) {
 				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
+				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
 				String[] tmpLines = tmpBody.split("\n");
 				String tmpUrl = "";
-				for (String tmpLine: tmpLines) {
-					if (!tmpLine.toLowerCase().contains("<a")){
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.toLowerCase().contains("<a")) {
 						continue;
 					}
 					if (!tmpLine.toLowerCase().contains("d.tube/")) {
@@ -281,27 +280,27 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
 					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
 					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-					if (tmpLine.length()>tmpUrl.length()) {
+					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+					if (tmpLine.length() > tmpUrl.length()) {
 						tmpUrl = tmpLine;
 					}
 				}
-				//Markdown ( style links
-				for (String tmpLine: tmpLines) {
-					if (!tmpLine.contains("(")){
+				// Markdown ( style links
+				for (String tmpLine : tmpLines) {
+					if (!tmpLine.contains("(")) {
 						continue;
 					}
 					String[] tmpLines2 = tmpLine.split("\\(");
-					for (String tmpLine2: tmpLines2) {
-						if (!tmpLine2.contains("http")){
+					for (String tmpLine2 : tmpLines2) {
+						if (!tmpLine2.contains("http")) {
 							continue;
 						}
 						if (!tmpLine2.toLowerCase().contains("d.tube/")) {
 							continue;
 						}
 						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
-						if (tmpLine2.length()>tmpUrl.length()) {
+						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine2.length() > tmpUrl.length()) {
 							tmpUrl = tmpLine2;
 						}
 					}
@@ -315,10 +314,10 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			entries.add(entry);
 		}
 		if (!entries.isEmpty()) {
-			BlogIndexEntry oldestBlogIndexEntry = entries.get(entries.size()-1);
+			BlogIndexEntry oldestBlogIndexEntry = entries.get(entries.size() - 1);
 			List<BlogIndexEntry> list = postsByAuthor.get(username);
-			if (list==null) {
-				postsByAuthor.put(username, list=new ArrayList<>());
+			if (list == null) {
+				postsByAuthor.put(username, list = new ArrayList<>());
 			}
 			list.addAll(entries);
 			index.addAll(username, entries);
@@ -358,7 +357,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onLoadUpdatePreviewList(Event.LoadUpdatePreviewList event) {
-		boolean filterActive = !event.getHaveTags().isEmpty()||!event.getNotTags().isEmpty();
+		boolean filterActive = !event.getHaveTags().isEmpty() || !event.getNotTags().isEmpty();
 		fireEvent(new Event.UpdateEditActiveFilterState(filterActive));
 		if (filterActive) {
 			List<BlogIndexEntry> list = index.getFilteredList(event.getMode(), event.getHaveTags(), event.getNotTags());
@@ -447,15 +446,15 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		additionalIndexBlogs(list.listIterator());
 	}
-	
+
 	private BlogIndexEntry getOldestPostByAuthor(String author) {
 		List<BlogIndexEntry> entries = postsByAuthor.get(author);
-		if (entries==null||entries.isEmpty()) {
+		if (entries == null || entries.isEmpty()) {
 			return null;
 		}
-		return entries.get(entries.size()-1);
+		return entries.get(entries.size() - 1);
 	}
-	
+
 	public List<String> getOldestDateSortedAuthors() {
 		List<String> authors = new ArrayList<>(postsByAuthor.keySet());
 		Collections.sort(authors, (a, b) -> {
