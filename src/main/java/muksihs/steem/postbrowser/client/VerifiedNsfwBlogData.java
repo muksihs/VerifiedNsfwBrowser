@@ -83,11 +83,15 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		List<BlogIndexEntry> entries = new ArrayList<>();
 		for (Discussion discussion : result.getList()) {
 			BlogIndexEntry entry = new BlogIndexEntry();
+			boolean reblogged = !(username.equalsIgnoreCase(discussion.getAuthor()));
 			entry.setAuthor(discussion.getAuthor());
 			entry.setCreated(discussion.getCreated());
 			entry.setPermlink(discussion.getPermlink());
 			entry.setTitle(discussion.getTitle());
 			parseMetadata: try {
+				if (reblogged) {
+					break parseMetadata;
+				}
 				DiscussionMetadata metadata = MapperCallback.discussionMetadataMapper
 						.read(discussion.getJsonMetadata());
 				if (metadata == null) {
@@ -107,209 +111,214 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				// prevent NPEs
 				entry.setTags(new ArrayList<>());
 			}
-			final String body = discussion.getBody();
-
-			if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
-				String tmp = body;
-				// strip all but MD image tags
-				tmp = tmp.replaceAll("[^\\)]+!", "!");
-				tmp = tmp.replaceAll("\\)[^!]+", ")");
-
-				// convert all to bare urls
-				tmp = tmp.replaceAll("!\\[[^\\]]*\\]", "");
-				tmp = tmp.replaceAll("\\(([^\\)\\s]+)[^\\)]*", "\n$1\n");
-
-				// remove any remaining and hence invalid paren sets
-				tmp = tmp.replaceAll("\\([^\\)]*\\)", "");
-
-				// strip possible single or double surrounding quotes
-				tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
-				tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
-				// cleanup removing blank lines
-				tmp = tmp.replaceAll("\n+", "\n");
-				// split on inner "\n" and add to combined images
-				String[] tmpUrls = tmp.trim().split("\n");
-				if (tmpUrls != null && tmpUrls.length > 0) {
-					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
+			parseBody: {
+				if (reblogged) {
+					break parseBody;
 				}
-			}
+				final String body = discussion.getBody();
 
-			// add body extracted images last (HTML <img ...>
+				if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
+					String tmp = body;
+					// strip all but MD image tags
+					tmp = tmp.replaceAll("[^\\)]+!", "!");
+					tmp = tmp.replaceAll("\\)[^!]+", ")");
 
-			if (body.toLowerCase().contains("<img")) {
-				// strip all but tags
-				String tmp = body;
-				tmp = tmp.replaceAll("[^>]+<", "<");
-				tmp = tmp.replaceAll(">[^<]+", ">");
-				// reduce down to only img tags
-				tmp = tmp.replaceAll("(<>)", "");
-				tmp = tmp.replaceAll("(<[^iI][^>]*>)", "");
-				tmp = tmp.replaceAll("(<[iI][^mM][^>]*>)", "");
-				tmp = tmp.replaceAll("(<[iI][mM][^gG]\\s+[^>]*>)", "");
-				// convert all img tags with a src component to bare urls
-				tmp = tmp.replaceAll("<[^>]+?src[ \n]*=[ \n]*([^> \n]+)[^>]*>", "\n$1\n");
-				// remove any remaining and hence invalid tags
-				tmp = tmp.replaceAll("(<[^>]*>)", "");
-				// strip possible single or double surrounding quotes
-				tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
-				tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
-				// cleanup removing blank lines
-				tmp = tmp.replaceAll("\n+", "\n");
-				// split on inner "\n" and add to combined images
-				String[] tmpUrls = tmp.trim().split("\n");
-				if (tmpUrls != null && tmpUrls.length > 0) {
-					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
-				}
-			}
-			// dlive.io
-			dlive: if (body.toLowerCase().contains("dlive.io")) {
-				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
-				String[] tmpLines = tmpBody.split("\n");
-				String tmpUrl = "";
-				// HTML <a style links
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.toLowerCase().contains("<a")) {
-						continue;
-					}
-					if (!tmpLine.toLowerCase().contains("dlive.io/")) {
-						continue;
-					}
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
-					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-					if (tmpLine.length() > tmpUrl.length()) {
-						tmpUrl = tmpLine;
+					// convert all to bare urls
+					tmp = tmp.replaceAll("!\\[[^\\]]*\\]", "");
+					tmp = tmp.replaceAll("\\(([^\\)\\s]+)[^\\)]*", "\n$1\n");
+
+					// remove any remaining and hence invalid paren sets
+					tmp = tmp.replaceAll("\\([^\\)]*\\)", "");
+
+					// strip possible single or double surrounding quotes
+					tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
+					tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
+					// cleanup removing blank lines
+					tmp = tmp.replaceAll("\n+", "\n");
+					// split on inner "\n" and add to combined images
+					String[] tmpUrls = tmp.trim().split("\n");
+					if (tmpUrls != null && tmpUrls.length > 0) {
+						entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 					}
 				}
-				// Markdown ( style links
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.contains("(")) {
-						continue;
+
+				// add body extracted images last (HTML <img ...>
+
+				if (body.toLowerCase().contains("<img")) {
+					// strip all but tags
+					String tmp = body;
+					tmp = tmp.replaceAll("[^>]+<", "<");
+					tmp = tmp.replaceAll(">[^<]+", ">");
+					// reduce down to only img tags
+					tmp = tmp.replaceAll("(<>)", "");
+					tmp = tmp.replaceAll("(<[^iI][^>]*>)", "");
+					tmp = tmp.replaceAll("(<[iI][^mM][^>]*>)", "");
+					tmp = tmp.replaceAll("(<[iI][mM][^gG]\\s+[^>]*>)", "");
+					// convert all img tags with a src component to bare urls
+					tmp = tmp.replaceAll("<[^>]+?src[ \n]*=[ \n]*([^> \n]+)[^>]*>", "\n$1\n");
+					// remove any remaining and hence invalid tags
+					tmp = tmp.replaceAll("(<[^>]*>)", "");
+					// strip possible single or double surrounding quotes
+					tmp = ("\n" + tmp + "\n").replaceAll("\n['\"]+", "");
+					tmp = ("\n" + tmp + "\n").replaceAll("['\"]+\n", "");
+					// cleanup removing blank lines
+					tmp = tmp.replaceAll("\n+", "\n");
+					// split on inner "\n" and add to combined images
+					String[] tmpUrls = tmp.trim().split("\n");
+					if (tmpUrls != null && tmpUrls.length > 0) {
+						entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 					}
-					String[] tmpLines2 = tmpLine.split("\\(");
-					for (String tmpLine2 : tmpLines2) {
-						if (!tmpLine2.contains("http")) {
+				}
+				// dlive.io
+				dlive: if (body.toLowerCase().contains("dlive.io")) {
+					String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+					tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
+					String[] tmpLines = tmpBody.split("\n");
+					String tmpUrl = "";
+					// HTML <a style links
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.toLowerCase().contains("<a")) {
 							continue;
 						}
-						if (!tmpLine2.toLowerCase().contains("dlive.io/")) {
+						if (!tmpLine.toLowerCase().contains("dlive.io/")) {
 							continue;
 						}
-						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-						if (tmpLine2.length() > tmpUrl.length()) {
-							tmpUrl = tmpLine2;
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+						tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+						tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine.length() > tmpUrl.length()) {
+							tmpUrl = tmpLine;
 						}
 					}
-				}
+					// Markdown ( style links
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.contains("(")) {
+							continue;
+						}
+						String[] tmpLines2 = tmpLine.split("\\(");
+						for (String tmpLine2 : tmpLines2) {
+							if (!tmpLine2.contains("http")) {
+								continue;
+							}
+							if (!tmpLine2.toLowerCase().contains("dlive.io/")) {
+								continue;
+							}
+							tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+							tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+							if (tmpLine2.length() > tmpUrl.length()) {
+								tmpUrl = tmpLine2;
+							}
+						}
+					}
 
-				if (!tmpUrl.trim().isEmpty()) {
-					entry.setCustomUrlName("DLive");
-					entry.setCustomUrl(tmpUrl);
-					break dlive;
-				}
-			}
-			dporn: if (body.toLowerCase().contains("dporn.co/")) {
-				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
-				String[] tmpLines = tmpBody.split("\n");
-				String tmpUrl = "";
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.toLowerCase().contains("<a")) {
-						continue;
-					}
-					if (!tmpLine.toLowerCase().contains("dporn.co/")) {
-						continue;
-					}
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
-					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-					if (tmpLine.length() > tmpUrl.length()) {
-						tmpUrl = tmpLine;
+					if (!tmpUrl.trim().isEmpty()) {
+						entry.setCustomUrlName("DLive");
+						entry.setCustomUrl(tmpUrl);
+						break dlive;
 					}
 				}
-				// Markdown ( style links
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.contains("(")) {
-						continue;
-					}
-					String[] tmpLines2 = tmpLine.split("\\(");
-					for (String tmpLine2 : tmpLines2) {
-						if (!tmpLine2.contains("http")) {
+				dporn: if (body.toLowerCase().contains("dporn.co/")) {
+					String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+					tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
+					String[] tmpLines = tmpBody.split("\n");
+					String tmpUrl = "";
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.toLowerCase().contains("<a")) {
 							continue;
 						}
-						if (!tmpLine2.toLowerCase().contains("dporn.co/")) {
+						if (!tmpLine.toLowerCase().contains("dporn.co/")) {
 							continue;
 						}
-						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-						if (tmpLine2.length() > tmpUrl.length()) {
-							tmpUrl = tmpLine2;
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+						tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+						tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine.length() > tmpUrl.length()) {
+							tmpUrl = tmpLine;
 						}
 					}
-				}
-				if (!tmpUrl.trim().isEmpty()) {
-					entry.setCustomUrlName("DPORN");
-					entry.setCustomUrl(tmpUrl);
+					// Markdown ( style links
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.contains("(")) {
+							continue;
+						}
+						String[] tmpLines2 = tmpLine.split("\\(");
+						for (String tmpLine2 : tmpLines2) {
+							if (!tmpLine2.contains("http")) {
+								continue;
+							}
+							if (!tmpLine2.toLowerCase().contains("dporn.co/")) {
+								continue;
+							}
+							tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+							tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+							if (tmpLine2.length() > tmpUrl.length()) {
+								tmpUrl = tmpLine2;
+							}
+						}
+					}
+					if (!tmpUrl.trim().isEmpty()) {
+						entry.setCustomUrlName("DPORN");
+						entry.setCustomUrl(tmpUrl);
+						break dporn;
+					}
 					break dporn;
 				}
-				break dporn;
-			}
-			dtube: if (body.toLowerCase().contains("d.tube/")) {
-				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
-				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
-				String[] tmpLines = tmpBody.split("\n");
-				String tmpUrl = "";
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.toLowerCase().contains("<a")) {
-						continue;
-					}
-					if (!tmpLine.toLowerCase().contains("d.tube/")) {
-						continue;
-					}
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
-					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
-					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
-					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-					if (tmpLine.length() > tmpUrl.length()) {
-						tmpUrl = tmpLine;
-					}
-				}
-				// Markdown ( style links
-				for (String tmpLine : tmpLines) {
-					if (!tmpLine.contains("(")) {
-						continue;
-					}
-					String[] tmpLines2 = tmpLine.split("\\(");
-					for (String tmpLine2 : tmpLines2) {
-						if (!tmpLine2.contains("http")) {
+				dtube: if (body.toLowerCase().contains("d.tube/")) {
+					String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+					tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim() + "\n";
+					String[] tmpLines = tmpBody.split("\n");
+					String tmpUrl = "";
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.toLowerCase().contains("<a")) {
 							continue;
 						}
-						if (!tmpLine2.toLowerCase().contains("d.tube/")) {
+						if (!tmpLine.toLowerCase().contains("d.tube/")) {
 							continue;
 						}
-						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
-						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
-						if (tmpLine2.length() > tmpUrl.length()) {
-							tmpUrl = tmpLine2;
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+						tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+						tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+						if (tmpLine.length() > tmpUrl.length()) {
+							tmpUrl = tmpLine;
 						}
 					}
-				}
-				if (!tmpUrl.trim().isEmpty()) {
-					entry.setCustomUrlName("DTUBE");
-					entry.setCustomUrl(tmpUrl);
-					break dtube;
+					// Markdown ( style links
+					for (String tmpLine : tmpLines) {
+						if (!tmpLine.contains("(")) {
+							continue;
+						}
+						String[] tmpLines2 = tmpLine.split("\\(");
+						for (String tmpLine2 : tmpLines2) {
+							if (!tmpLine2.contains("http")) {
+								continue;
+							}
+							if (!tmpLine2.toLowerCase().contains("d.tube/")) {
+								continue;
+							}
+							tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+							tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$", "$1");
+							if (tmpLine2.length() > tmpUrl.length()) {
+								tmpUrl = tmpLine2;
+							}
+						}
+					}
+					if (!tmpUrl.trim().isEmpty()) {
+						entry.setCustomUrlName("DTUBE");
+						entry.setCustomUrl(tmpUrl);
+						break dtube;
+					}
 				}
 			}
 			entries.add(entry);
 		}
 		if (!entries.isEmpty()) {
-			BlogIndexEntry oldestBlogIndexEntry = entries.get(entries.size() - 1);
+			// BlogIndexEntry oldestBlogIndexEntry = entries.get(entries.size() - 1);
 			List<BlogIndexEntry> list = postsByAuthor.get(username);
 			if (list == null) {
 				postsByAuthor.put(username, list = new ArrayList<>());
@@ -361,7 +370,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			for (BlogIndexEntry preview : list) {
 				List<String> tags = preview.getTags();
 				if (tags != null) {
-					for (String tag: tags) {
+					for (String tag : tags) {
 						String lcTag = tag.toLowerCase();
 						availableTags.add(lcTag);
 					}
@@ -431,7 +440,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onStartBackgroundIndexing(Event.StartBackgroundIndexing event) {
-		List<String> list = getOldestDateSortedAuthors();
+		List<String> list = new ArrayList<>(postsByAuthor.keySet());
+		// reblogs are causing sorting issues, just randomize it.
+		Collections.shuffle(list);
 		ListIterator<String> iList = list.listIterator();
 		while (iList.hasNext()) {
 			if (index.isIndexingComplete(iList.next())) {
@@ -481,11 +492,18 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		if (timerGetDiscussionsByBlogFailsafe != null) {
 			timerGetDiscussionsByBlogFailsafe.cancel();
 		}
-		if (!iList.hasNext()) {
-			return;
-		}
 		if (timerRestartAdditionalIndexBlogs != null) {
 			timerRestartAdditionalIndexBlogs.cancel();
+		}
+		if (!iList.hasNext()) {
+			new Timer() {
+				@Override
+				public void run() {
+					DomGlobal.console.log("=== additionalIndexBlogs: RESTART");
+					fireEvent(new Event.StartBackgroundIndexing());
+				}
+			}.schedule(1000);
+			return;
 		}
 		timerRestartAdditionalIndexBlogs = new Timer() {
 			@Override
@@ -536,9 +554,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(250);
 			}
 		};
-		int limit = 15;
+		int limit = 20;
 		if (Util.isSdm()) {
-			limit = 5;
+			limit = 10;
 		}
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
@@ -571,9 +589,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int limit = 15;
+		int limit = 20;
 		if (Util.isSdm()) {
-			limit = 5;
+			limit = 10;
 		}
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
