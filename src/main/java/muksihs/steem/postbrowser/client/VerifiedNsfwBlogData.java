@@ -109,11 +109,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			}
 			final String body = discussion.getBody();
 
-			// add body extracted images next (Markdown)
-			// ![wo3n2ln78t.jpg](https://img.esteem.ws/wo3n2ln78t.jpg)
-			// ![alt
-			// text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png
-			// "Logo Title Text 1")
 			if (body.matches("[\\s\\S]*!\\[[^\\]]*\\]\\s*\\([^\\)]*\\)[\\s\\S]*")) {
 				String tmp = body;
 				// strip all but MD image tags
@@ -366,7 +361,10 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			for (BlogIndexEntry preview : list) {
 				List<String> tags = preview.getTags();
 				if (tags != null) {
-					availableTags.addAll(tags);
+					for (String tag: tags) {
+						String lcTag = tag.toLowerCase();
+						availableTags.add(lcTag);
+					}
 				}
 			}
 			fireEvent(new Event.SetAvailableTags(availableTags));

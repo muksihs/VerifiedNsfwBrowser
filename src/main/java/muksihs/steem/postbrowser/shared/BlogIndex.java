@@ -34,40 +34,21 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	private final Map<String, BlogIndexEntry> mostRecentByAuthor;
 	private final Map<String, Boolean> indexingComplete;
 
-	//TODO:
-	// deduped values for serialization
-//	@JsonValue
-//	protected Collection<BlogIndexEntry> jsonValue() {
-//		Set<BlogIndexEntry> values = new HashSet<>();
-//		for (Set<BlogIndexEntry> entries : byTag.values()) {
-//			values.addAll(entries);
-//		}
-//		return values;
-//	}
-
-	//TODO:
-	// always build new index upon deserialization
-//	@JsonCreator
-//	protected static BlogIndex jsonCreate(Collection<BlogIndexEntry> entries) {
-//		BlogIndex index = new BlogIndex();
-//		index.addAll(entries);
-//		return index;
-//	}
-
 	public static enum FilteredListMode {
 		AND, OR;
 	}
 
 	public BlogIndexEntry getMostRecentEntry(String author) {
-		return mostRecentByAuthor.get(author);
+		return mostRecentByAuthor.get(author.toLowerCase());
 	}
 	
 	public boolean isIndexingComplete(String author) {
-		return indexingComplete.containsKey(author)?indexingComplete.get(author):false;
+		String lcAuthor = author.toLowerCase();
+		return indexingComplete.containsKey(lcAuthor)?indexingComplete.get(lcAuthor):false;
 	}
 	
 	public void setIndexingComplete(String author, boolean isIndexingComplete) {
-		indexingComplete.put(author, isIndexingComplete);
+		indexingComplete.put(author.toLowerCase(), isIndexingComplete);
 	}
 
 	/**
@@ -118,10 +99,11 @@ public class BlogIndex implements GlobalAsyncEventBus {
 			//Simplify logic by removing need for NULL checks.
 			ensureTagEntriesExist(includeTags);
 			Iterator<String> iTags = includeTags.iterator();
-			list.addAll(byTag.get(iTags.next()));
+			String lcFirstTag = iTags.next().toLowerCase();
+			list.addAll(byTag.get(lcFirstTag));
 			includeTagLoop: while (iTags.hasNext()) {
-				String tag = iTags.next();
-				Set<BlogIndexEntry> tmp = byTag.get(tag);
+				String lcTag = lcFirstTag;
+				Set<BlogIndexEntry> tmp = byTag.get(lcTag);
 				switch (mode) {
 				case AND:
 					list.retainAll(tmp);
@@ -138,8 +120,8 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		if (excludeTags != null && !excludeTags.isEmpty()) {
 			Iterator<String> iExclude = excludeTags.iterator();
 			excludeTagLoop: while (iExclude.hasNext()) {
-				String tag = iExclude.next();
-				list.removeAll(byTag.get(tag));
+				String lcTag = iExclude.next().toLowerCase();
+				list.removeAll(byTag.get(lcTag));
 				if (list.isEmpty()) {
 					break excludeTagLoop;
 				}
@@ -158,12 +140,12 @@ public class BlogIndex implements GlobalAsyncEventBus {
 			Set<String> already = new HashSet<>();
 			Iterator<BlogIndexEntry> iList = list.iterator();
 			while (iList.hasNext()) {
-				String author = iList.next().getAuthor();
-				if (already.contains(author)) {
+				String lcAuthor = iList.next().getAuthor().toLowerCase();
+				if (already.contains(lcAuthor)) {
 					iList.remove();
 					continue;
 				}
-				already.add(author);
+				already.add(lcAuthor);
 			}
 		}
 		return list;
@@ -196,36 +178,39 @@ public class BlogIndex implements GlobalAsyncEventBus {
 		Set<String> tags = new HashSet<>();
 		if (entry.getTags() != null) {
 			for (String tag : entry.getTags()) {
-				tag = tag.trim().toLowerCase();
+				String lcTag = tag.trim().toLowerCase();
 				if (tag.isEmpty()) {
 					continue;
 				}
-				tags.add(tag);
+				tags.add(lcTag);
 			}
 		}
-		authors.add(username);
+		String lcUsername = username.toLowerCase();
+		authors.add(lcUsername);
 		final Date created = entry.getCreated();
 		//don't index reblogs
-		if (username.equals(entry.getAuthor())) {
-			tags.add("@" + username);
+		if (lcUsername.equalsIgnoreCase(entry.getAuthor())) {
+			tags.add("@" + lcUsername);
 			//Only use the most recent NSFW post for recent by author listing
 			if (created != null && tags.contains("nsfw")) {
-				BlogIndexEntry prev = mostRecentByAuthor.get(username);
+				BlogIndexEntry prev = mostRecentByAuthor.get(lcUsername);
 				if (prev == null || created.after(prev.getCreated())) {
-					mostRecentByAuthor.put(username, entry);
+					mostRecentByAuthor.put(lcUsername, entry);
 				}
 			}
 			ensureTagEntriesExist(tags);
 			for (String tag : tags) {
-				byTag.get(tag).add(entry);
+				String lcTag = tag.toLowerCase();
+				byTag.get(lcTag).add(entry);
 			}
 		}
 	}
 
 	private void ensureTagEntriesExist(Collection<String> tags) {
 		for (String tag : tags) {
-			if (!byTag.containsKey(tag)) {
-				byTag.put(tag, new HashSet<BlogIndexEntry>());
+			String lcTag = tag.toLowerCase();
+			if (!byTag.containsKey(lcTag)) {
+				byTag.put(lcTag, new HashSet<BlogIndexEntry>());
 			}
 		}
 	}
@@ -257,8 +242,4 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	public Set<String> getTags() {
 		return new TreeSet<>(byTag.keySet());
 	}
-	
-//	public List<BlogIndexEntry> getEntries() {
-//		return new ArrayList<>(jsonValue());
-//	}
 }

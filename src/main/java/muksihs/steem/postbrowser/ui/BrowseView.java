@@ -184,7 +184,7 @@ public class BrowseView extends EventBusComposite {
 					dialog.close();
 				});
 			}
-			tagLabel.setMargin(1);
+			tagLabel.setMargin(1.25);
 			panel.add(tagLabel);
 		}
 		dialog.add(panel);
