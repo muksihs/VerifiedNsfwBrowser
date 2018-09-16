@@ -536,7 +536,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(250);
 			}
 		};
-		int limit = 10;
+		int limit = 15;
 		if (Util.isSdm()) {
 			limit = 5;
 		}
