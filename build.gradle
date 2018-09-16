@@ -69,7 +69,7 @@ gwt {
 
 	gwtVersion='2.8.2'
 
-	modules 'muksihs.steem.postbrowser.VerifiedNsfwBrowser'
+	modules 'muksihs.steem.postbrowser.VerifiedNsfwBrowser', 'muksihs.steem.postbrowser.Test'
 	
 	//src += files("build/generated/source/apt/main");
 	

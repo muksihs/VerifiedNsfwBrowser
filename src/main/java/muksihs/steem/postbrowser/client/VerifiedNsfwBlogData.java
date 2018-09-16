@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -25,9 +26,11 @@ import muksihs.steem.postbrowser.eventbus.GlobalAsyncEventBus;
 import muksihs.steem.postbrowser.shared.BlogIndex;
 import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 import steem.MapperCallback;
+import steem.MapperCallback.CommentListCallback;
 import steem.MapperCallback.DiscussionsCallback;
 import steem.MapperCallback.FollowingListCallback;
 import steem.SteemApi;
+import steem.models.CommentItem;
 import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
 import steem.models.FollowingList;
@@ -75,14 +78,16 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	 */
 	private final Map<String, List<BlogIndexEntry>> postsByAuthor;
 
-	protected void indexBlogEntries(String username, List<Discussion> result) {
+	protected void indexBlogEntries(String username, List<CommentItem> result) {
 		if (result == null) {
 			return;
 		}
 		List<BlogIndexEntry> entries = new ArrayList<>();
-		for (Discussion discussion : result) {
+		for (CommentItem commentItem : result) {
+			Discussion discussion = commentItem.getComment();
 			BlogIndexEntry entry = new BlogIndexEntry();
 			boolean reblogged = !(username.equalsIgnoreCase(discussion.getAuthor()));
+			entry.setEntryId(commentItem.getEntryId());
 			entry.setAuthor(discussion.getAuthor());
 			entry.setCreated(discussion.getCreated());
 			entry.setPermlink(discussion.getPermlink());
@@ -454,6 +459,16 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		additionalIndexBlogs(list.listIterator());
 	}
 
+	private long getLowestEntryIdByAuthor(String author) {
+		long entryId = Long.MAX_VALUE;
+		Iterator<BlogIndexEntry> iter = postsByAuthor.get(author).iterator();
+		while (iter.hasNext()) {
+			BlogIndexEntry next = iter.next();
+			entryId = Math.min(next.getEntryId(), entryId);
+		}
+		return entryId;
+	}
+	
 	private BlogIndexEntry getOldestPostByAuthor(String author) {
 		List<BlogIndexEntry> entries = postsByAuthor.get(author);
 		if (entries == null || entries.isEmpty()) {
@@ -487,6 +502,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	private Timer timerRestartAdditionalIndexBlogs = null;
 
 	private void additionalIndexBlogs(ListIterator<String> iList) {
+		fireEvent(new Event.TotalBlogEntries(index.getTotalEntries()));
 		if (timerGetDiscussionsByBlogFailsafe != null) {
 			timerGetDiscussionsByBlogFailsafe.cancel();
 		}
@@ -516,6 +532,11 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			additionalIndexBlogs(iList);
 			return;
 		}
+		long lowestEntryId = getLowestEntryIdByAuthor(username);
+		if (lowestEntryId==1 || lowestEntryId == Long.MAX_VALUE) {
+			additionalIndexBlogs(iList);
+			return;
+		}
 		DomGlobal.console.log("=== additionalIndexBlogs: @" + username);
 		timerGetDiscussionsByBlogFailsafe = new Timer() {
 			@Override
@@ -525,21 +546,28 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			}
 		};
 		timerGetDiscussionsByBlogFailsafe.schedule(10000);
-		BlogIndexEntry oldestPost = getOldestPostByAuthor(username);
-		if (oldestPost == null) {
-			additionalIndexBlogs(iList);
-			return;
-		}
-		DiscussionsCallback cb = new DiscussionsCallback() {
+		CommentListCallback cb = new CommentListCallback() {
 			@Override
-			public void onResult(String error, List<Discussion> result) {
-				if (error != null) {
+			public void onResult(String error, List<CommentItem> result) {
+				if (error != null && !error.trim().isEmpty()) {
 					additionalIndexBlogs(iList);
 					return;
 				}
 				if (result != null) {
+					Iterator<CommentItem> iter = result.iterator();
+					while (iter.hasNext()) {
+						CommentItem next = iter.next();
+						if (next.getEntryId()==lowestEntryId) {
+							iter.remove();
+							continue;
+						}
+						if (next.getEntryId()==0) {
+							iter.remove();
+							continue;
+						}
+					}
 					indexBlogEntries(username, result);
-					if (result.size() == 1) {
+					if (result.size() == 0) {
 						index.setIndexingComplete(username, true);
 						DomGlobal.console.log("=== Indexing complete for @" + username);
 					}
@@ -552,8 +580,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(25);
 			}
 		};
-		int limit = 20;
-		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
+		int limit = 10;
+		// getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
+		SteemApi.getBlog(username, lowestEntryId-1, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
 
@@ -565,13 +594,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			MaterialToast.fireToast("Starting Additional Indexing in the Background", 1100);
 			return;
 		}
+		fireEvent(new Event.TotalBlogEntries(index.getTotalEntries()));
 		final String username = iList.next();
 		iList.remove();
 		DomGlobal.console.log("indexBlog: @" + username);
-		DiscussionsCallback cb = new DiscussionsCallback() {
+		CommentListCallback cb = new CommentListCallback() {
 			@Override
-			public void onResult(String error, List<Discussion> result) {
-				if (error != null) {
+			public void onResult(String error, List<CommentItem> result) {
+				if (error != null && !error.trim().isEmpty()) {
 					MaterialToast.fireToast("STEEM API ERROR [@" + username + "]: " + error, 1000);
 					iList.add(username);
 					iList.previous();
@@ -579,6 +609,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					return;
 				}
 				if (result != null) {
+					Iterator<CommentItem> iter = result.iterator();
+					while (iter.hasNext()) {
+						CommentItem next = iter.next();
+						if (next.getEntryId()==0) {
+							iter.remove();
+							continue;
+						}
+					}
 					indexBlogEntries(username, result);
 				}
 				new Timer() {
@@ -589,8 +627,8 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(25);
 			}
 		};
-		int limit = 4;
-		SteemApi.getDiscussionsByBlog(username, limit, cb);
+		int limit = 8;
+		SteemApi.getBlog(username, Integer.MAX_VALUE, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
 

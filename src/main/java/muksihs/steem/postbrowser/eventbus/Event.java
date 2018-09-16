@@ -13,6 +13,31 @@ import muksihs.steem.postbrowser.shared.BlogIndexEntry;
 
 public interface Event {
 
+	public class TotalBlogEntries extends GenericEvent {
+		private final long totalBlogEntries;
+
+		public TotalBlogEntries(long totalBlogEntries) {
+			this.totalBlogEntries = totalBlogEntries;
+		}
+
+		public long getTotalBlogEntries() {
+			return totalBlogEntries;
+		}
+
+		public String getTotalBlogEntriesFormatted() {
+			String digits = Long.toString(totalBlogEntries);
+			String result = "";
+			for (int i=1; i <= digits.length(); ++i) {
+			    char ch = digits.charAt(digits.length() - i);
+			    result = ch + result;
+			    if (i % 3 == 0 && i!=digits.length()) {
+			        result = "," + result;
+			    }
+			}
+			return result;
+		}
+	}
+
 	public class ShowIndexing extends GenericEvent {
 		private final String username;
 

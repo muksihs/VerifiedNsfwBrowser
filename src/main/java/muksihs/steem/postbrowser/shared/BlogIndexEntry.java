@@ -7,6 +7,7 @@ import java.util.ListIterator;
 
 public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	
+	private long entryId;
 	private String title;
 	private String author;
 	private Date created;
@@ -83,6 +84,9 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 			return false;
 		}
 		BlogIndexEntry other = (BlogIndexEntry) obj;
+		if (entryId != other.getEntryId()) {
+			return false;
+		}
 		if (author == null) {
 			if (other.author != null) {
 				return false;
@@ -202,5 +206,13 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 
 	public void setCustomUrl(String customUrl) {
 		this.customUrl = customUrl;
+	}
+
+	public long getEntryId() {
+		return entryId;
+	}
+
+	public void setEntryId(long entryId) {
+		this.entryId = entryId;
 	}
 }

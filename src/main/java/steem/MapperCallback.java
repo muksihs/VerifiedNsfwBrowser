@@ -9,7 +9,8 @@ import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 
 import steem.SteemApi.UserAccountInfoList;
-import steem.models.CommentList.CommentItem;
+import steem.models.BlogItem;
+import steem.models.CommentItem;
 import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
 import steem.models.FollowingList;
@@ -76,13 +77,23 @@ public class MapperCallback {
 		}
 	}
 	
-	public static interface CommentListMapper extends ObjectMapper<ArrayList<CommentItem>> {
+	public static interface CommentItemsMapper extends ObjectMapper<List<CommentItem>> {
 	}
 
-	public static interface CommentListCallback extends SteemTypedCallback<ArrayList<CommentItem>,CommentListMapper> {
+	public static interface CommentListCallback extends SteemTypedCallback<List<CommentItem>,CommentItemsMapper> {
 		@Override
-		default CommentListMapper mapper() {
-			return GWT.create(CommentListMapper.class);
+		default CommentItemsMapper mapper() {
+			return GWT.create(CommentItemsMapper.class);
+		}
+	}
+	
+	public static interface BlogItemsMapper extends ObjectMapper<ArrayList<BlogItem>> {
+	}
+
+	public static interface BlogListCallback extends SteemTypedCallback<ArrayList<BlogItem>,BlogItemsMapper> {
+		@Override
+		default BlogItemsMapper mapper() {
+			return GWT.create(BlogItemsMapper.class);
 		}
 	}
 

@@ -47,6 +47,8 @@ public class BrowseView extends EventBusComposite {
 	@UiField
 	protected MaterialLabel indexingUsername;
 	@UiField
+	protected MaterialLabel totalBlogEntries;
+	@UiField
 	protected MaterialButton loadFilter;
 	@UiField
 	protected MaterialButton saveFilter;
@@ -112,6 +114,10 @@ public class BrowseView extends EventBusComposite {
 
 	private Timer clearIndexingStatus = null;
 
+	@EventHandler
+	protected void updateTotalBlogEntries(Event.TotalBlogEntries event) {
+		totalBlogEntries.setText("Total entries: "+event.getTotalBlogEntriesFormatted());
+	}
 	@EventHandler
 	protected void onIndexingUser(Event.ShowIndexing event) {
 		if (clearIndexingStatus != null) {

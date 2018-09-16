@@ -16,6 +16,7 @@ import elemental2.dom.DomGlobal;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsType;
+import steem.MapperCallback.BlogListCallback;
 import steem.MapperCallback.CommentListCallback;
 import steem.MapperCallback.DiscussionsCallback;
 import steem.MapperCallback.FollowingListCallback;
@@ -119,8 +120,24 @@ public class SteemApi {
 	private static native void _getBlog(String account, String entryId, int limit, //
 			SteemJsCallback cb);
 	@JsOverlay
-	public static void getBlog(String account, BigInteger entryId, int limit, CommentListCallback callback) {
-		_getBlog(account, entryId.toString(), limit, (error, result) -> callback.onResult(error, result));
+	public static void getBlog(String account, JSONNumber entryId, int limit, CommentListCallback callback) {
+		_getBlog(account,String.valueOf(entryId.doubleValue()), limit, (error, result) -> callback.onResult(error, result));
+	}
+	@JsOverlay
+	public static void getBlog(String account, long entryId, int limit, CommentListCallback callback) {
+		getBlog(account, new JSONNumber(entryId), limit, (error, result) -> callback.onResult(error, result));
+	}
+	
+	@JsMethod(name = "getBlogEntries")
+	private static native void _getBlogEntries(String account, String entryId, int limit, //
+			SteemJsCallback cb);
+	@JsOverlay
+	public static void getBlogEntries(String account, JSONNumber entryId, int limit, BlogListCallback callback) {
+		_getBlogEntries(account,String.valueOf(entryId.doubleValue()), limit, (error, result) -> callback.onResult(error, result));
+	}
+	@JsOverlay
+	public static void getBlogEntries(String account, long entryId, int limit, BlogListCallback callback) {
+		getBlogEntries(account, new JSONNumber(entryId), limit, (error, result) -> callback.onResult(error, result));
 	}
 
 	@JsMethod(name = "getDiscussionsByBlog")

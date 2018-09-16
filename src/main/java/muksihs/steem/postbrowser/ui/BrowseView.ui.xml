@@ -12,6 +12,8 @@
 			<m:MaterialPanel>
 				<m:MaterialLabel ui:field="indexingUsername"
 				style="display: inline-block; margin: 2px; margin-right: 12px;"/>
+				<m:MaterialLabel ui:field="totalBlogEntries"
+				style="display: inline-block; margin: 2px; margin-right: 12px;"/>
 				<m:MaterialButton ui:field="clearFilter"
 					style='margin: 2px;' text="Clear Filter" />
 				<m:MaterialButton ui:field="activeTags"

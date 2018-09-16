@@ -240,4 +240,12 @@ public class BlogIndex implements GlobalAsyncEventBus {
 	public Set<String> getTags() {
 		return new TreeSet<>(byTag.keySet());
 	}
+
+	public long getTotalEntries() {
+		Set<BlogIndexEntry> merged=new HashSet<>();
+		for (Set<BlogIndexEntry> e: byTag.values()) {
+			merged.addAll(e);
+		}
+		return merged.size();
+	}
 }
