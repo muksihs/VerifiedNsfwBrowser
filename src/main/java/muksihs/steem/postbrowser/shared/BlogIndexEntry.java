@@ -2,7 +2,9 @@ package muksihs.steem.postbrowser.shared;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	
@@ -145,6 +147,14 @@ public class BlogIndexEntry implements Comparable<BlogIndexEntry>{
 	}
 	public void setTags(List<String> tags) {
 		this.tags = new ArrayList<>(tags);
+		ListIterator<String> iter = this.tags.listIterator();
+		while (iter.hasNext()) {
+			String next = iter.next();
+			if (next.trim().isEmpty()) {
+				iter.remove();
+			}
+			iter.set(next.trim());
+		}
 	}
 	public String getTitle() {
 		return title;
