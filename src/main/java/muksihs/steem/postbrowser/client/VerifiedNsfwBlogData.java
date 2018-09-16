@@ -555,7 +555,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(250);
 			}
 		};
-		int limit = 4;
+		int limit = 15;
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -587,7 +587,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int limit = 4;
+		int limit = 15;
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -599,6 +599,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			return;
 		}
 		fireEvent(new Event.ShowLoading(false));
+		Collections.shuffle(list);
 		final ListIterator<String> iList = new ArrayList<>(list).listIterator();
 		indexBlogs(iList);
 		MaterialToast.fireToast("Loading and Tag Indexing Blogs", 1900);
