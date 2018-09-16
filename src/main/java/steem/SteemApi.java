@@ -1,11 +1,13 @@
 package steem;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsonUtils;
+import com.google.gwt.dev.json.JsonNumber;
 import com.google.gwt.json.client.JSONNumber;
 import com.google.gwt.json.client.JSONObject;
 import com.google.gwt.json.client.JSONString;
@@ -14,6 +16,7 @@ import elemental2.dom.DomGlobal;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsType;
+import steem.MapperCallback.CommentListCallback;
 import steem.MapperCallback.DiscussionsCallback;
 import steem.MapperCallback.FollowingListCallback;
 import steem.MapperCallback.TrendingTagsCallback;
@@ -110,6 +113,14 @@ public class SteemApi {
 		_getTrendingTags(afterTag, limit, (error, result) -> {
 			callback.onResult(error, result);
 		});
+	}
+	
+	@JsMethod(name = "getBlog")
+	private static native void _getBlog(String account, String entryId, int limit, //
+			SteemJsCallback cb);
+	@JsOverlay
+	public static void getBlog(String account, BigInteger entryId, int limit, CommentListCallback callback) {
+		_getBlog(account, entryId.toString(), limit, (error, result) -> callback.onResult(error, result));
 	}
 
 	@JsMethod(name = "getDiscussionsByBlog")

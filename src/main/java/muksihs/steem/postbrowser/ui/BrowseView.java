@@ -125,7 +125,7 @@ public class BrowseView extends EventBusComposite {
 			}
 		};
 		clearIndexingStatus.schedule(15000);
-		indexingUsername.setText("Reading blog: @"+event.getUsername());
+		indexingUsername.setText("Loading entries for: @"+event.getUsername());
 	}
 
 	@EventHandler

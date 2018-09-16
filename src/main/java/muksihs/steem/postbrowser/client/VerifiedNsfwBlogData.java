@@ -30,7 +30,6 @@ import steem.MapperCallback.FollowingListCallback;
 import steem.SteemApi;
 import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
-import steem.models.Discussions;
 import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
@@ -76,12 +75,12 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 	 */
 	private final Map<String, List<BlogIndexEntry>> postsByAuthor;
 
-	protected void indexBlogEntries(String username, Discussions result) {
+	protected void indexBlogEntries(String username, List<Discussion> result) {
 		if (result == null) {
 			return;
 		}
 		List<BlogIndexEntry> entries = new ArrayList<>();
-		for (Discussion discussion : result.getList()) {
+		for (Discussion discussion : result) {
 			BlogIndexEntry entry = new BlogIndexEntry();
 			boolean reblogged = !(username.equalsIgnoreCase(discussion.getAuthor()));
 			entry.setAuthor(discussion.getAuthor());
@@ -441,9 +440,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 
 	@EventHandler
 	protected void onStartBackgroundIndexing(Event.StartBackgroundIndexing event) {
-		List<String> list = new ArrayList<>(postsByAuthor.keySet());
-		// reblogs are causing sorting issues, just randomize it.
-		Collections.shuffle(list);
+		List<String> list = new ArrayList<>(getOldestDateSortedAuthors());
 		ListIterator<String> iList = list.listIterator();
 		while (iList.hasNext()) {
 			if (index.isIndexingComplete(iList.next())) {
@@ -535,14 +532,14 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		DiscussionsCallback cb = new DiscussionsCallback() {
 			@Override
-			public void onResult(String error, Discussions result) {
+			public void onResult(String error, List<Discussion> result) {
 				if (error != null) {
 					additionalIndexBlogs(iList);
 					return;
 				}
 				if (result != null) {
 					indexBlogEntries(username, result);
-					if (result.getList().size() == 1) {
+					if (result.size() == 1) {
 						index.setIndexingComplete(username, true);
 						DomGlobal.console.log("=== Indexing complete for @" + username);
 					}
@@ -552,10 +549,10 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					public void run() {
 						additionalIndexBlogs(iList);
 					}
-				}.schedule(250);
+				}.schedule(25);
 			}
 		};
-		int limit = 15;
+		int limit = 20;
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -573,7 +570,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		DomGlobal.console.log("indexBlog: @" + username);
 		DiscussionsCallback cb = new DiscussionsCallback() {
 			@Override
-			public void onResult(String error, Discussions result) {
+			public void onResult(String error, List<Discussion> result) {
 				if (error != null) {
 					MaterialToast.fireToast("STEEM API ERROR [@" + username + "]: " + error, 1000);
 					iList.add(username);
@@ -584,10 +581,15 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				if (result != null) {
 					indexBlogEntries(username, result);
 				}
-				indexBlogs(iList);
+				new Timer() {
+					@Override
+					public void run() {
+						indexBlogs(iList);
+					}
+				}.schedule(25);
 			}
 		};
-		int limit = 15;
+		int limit = 4;
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -599,7 +601,6 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			return;
 		}
 		fireEvent(new Event.ShowLoading(false));
-		Collections.shuffle(list);
 		final ListIterator<String> iList = new ArrayList<>(list).listIterator();
 		indexBlogs(iList);
 		MaterialToast.fireToast("Loading and Tag Indexing Blogs", 1900);

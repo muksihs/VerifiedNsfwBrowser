@@ -1,13 +1,17 @@
 package steem;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import com.github.nmorel.gwtjackson.client.ObjectMapper;
 import com.google.gwt.core.client.GWT;
 
 import steem.SteemApi.UserAccountInfoList;
+import steem.models.CommentList.CommentItem;
+import steem.models.Discussion;
 import steem.models.DiscussionMetadata;
-import steem.models.Discussions;
 import steem.models.FollowingList;
 import steem.models.TrendingTags;
 
@@ -52,13 +56,33 @@ public class MapperCallback {
 		}
 	}
 
-	public static interface DiscussionsMapper extends ObjectMapper<Discussions> {
+	public static interface DiscussionsMapper extends ObjectMapper<List<Discussion>> {
 	}
 
-	public static interface DiscussionsCallback extends SteemTypedListCallback<Discussions, DiscussionsMapper> {
+	public static interface DiscussionsCallback extends SteemTypedCallback<List<Discussion>, DiscussionsMapper> {
 		@Override
 		default DiscussionsMapper mapper() {
 			return GWT.create(DiscussionsMapper.class);
+		}
+	}
+	
+	public static interface MapMapper extends ObjectMapper<Map<String, Object>> {
+	}
+
+	public static interface MapMapperCallback extends SteemTypedListCallback<Map<String, Object>, MapMapper> {
+		@Override
+		default MapMapper mapper() {
+			return GWT.create(MapMapper.class);
+		}
+	}
+	
+	public static interface CommentListMapper extends ObjectMapper<ArrayList<CommentItem>> {
+	}
+
+	public static interface CommentListCallback extends SteemTypedCallback<ArrayList<CommentItem>,CommentListMapper> {
+		@Override
+		default CommentListMapper mapper() {
+			return GWT.create(CommentListMapper.class);
 		}
 	}
 

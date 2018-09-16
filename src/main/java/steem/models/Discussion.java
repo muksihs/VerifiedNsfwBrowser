@@ -2,16 +2,14 @@ package steem.models;
 
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class Discussion implements HasJsonAnyGetterSetter {
+public class Discussion {
 	@JsonProperty("first_reblogged_on")
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
 	private Date firstRebloggedOn;
@@ -373,10 +371,4 @@ public class Discussion implements HasJsonAnyGetterSetter {
 	public void setRebloggedBy(List<String> rebloggedBy) {
 		this.rebloggedBy = rebloggedBy;
 	}
-	private final Map<String, Object> _properties = new HashMap<>(); 
-	@Override
-	public Map<String, Object> anyGetterSetterMap() {
-		return _properties;
-	}
-
 }
