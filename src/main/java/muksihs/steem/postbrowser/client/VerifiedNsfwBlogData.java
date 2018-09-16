@@ -555,10 +555,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}.schedule(250);
 			}
 		};
-		int limit = 20;
-		if (Util.isSdm()) {
-			limit = 10;
-		}
+		int limit = 4;
 		SteemApi.getDiscussionsByBlog(username, oldestPost.getAuthor(), oldestPost.getPermlink(), limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
@@ -590,10 +587,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int limit = 20;
-		if (Util.isSdm()) {
-			limit = 10;
-		}
+		int limit = 4;
 		SteemApi.getDiscussionsByBlog(username, limit, cb);
 		fireEvent(new Event.ShowIndexing(username));
 	}
