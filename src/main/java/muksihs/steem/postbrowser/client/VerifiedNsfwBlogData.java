@@ -90,6 +90,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 			entry.setTitle(discussion.getTitle());
 			parseMetadata: try {
 				if (reblogged) {
+					entry.setTags(new ArrayList<>());
 					break parseMetadata;
 				}
 				DiscussionMetadata metadata = MapperCallback.discussionMetadataMapper
