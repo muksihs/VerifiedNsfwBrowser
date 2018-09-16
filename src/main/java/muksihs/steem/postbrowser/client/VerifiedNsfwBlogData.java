@@ -35,8 +35,6 @@ import steem.models.FollowingList;
 import steem.models.FollowingList.Following;
 
 public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
-	private static final String URL_PATTERN_DLIVE = "[\\s\\S]*\\[DLive\\]\\((https?://dlive.io[^\\)]*?)\\)[\\s\\S]*";
-	private static final String URL_PATTERN_DTUBE = "[\\s\\S]*<a[^>]*href=[\"']?(https?://(.*?\\.)?d.tube/#!/[^/]*?/[^/]*?/[^/]*?)[\"']?[^>]*>[\\s\\S]*";
 	private final BlogIndex index;
 	private static VerifiedNsfwBlogData instance;
 
@@ -167,11 +165,55 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					entry.addToCombinedImages(trimAndStripQuotes(Arrays.asList(tmpUrls)));
 				}
 			}
-			if (entry.getThumbnail() != null) {
+			//dlive.io
+			dlive: if (entry.getThumbnail() != null) {
 				if (entry.getThumbnail().matches("https?://.*?dlive.io/.*")) {
-					if (body.matches(URL_PATTERN_DLIVE)) {
+					String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+					tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
+					String[] tmpLines = tmpBody.split("\n");
+					String tmpUrl = "";
+					//HTML <a style links
+					for (String tmpLine: tmpLines) {
+						if (!tmpLine.toLowerCase().contains("<a")){
+							continue;
+						}
+						if (!tmpLine.toLowerCase().contains("dlive.io/")) {
+							continue;
+						}
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+						tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+						tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+						tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+						if (tmpLine.length()>tmpUrl.length()) {
+							tmpUrl = tmpLine;
+						}
+					}
+					//Markdown ( style links
+					for (String tmpLine: tmpLines) {
+						if (!tmpLine.contains("(")){
+							continue;
+						}
+						String[] tmpLines2 = tmpLine.split("\\(");
+						for (String tmpLine2: tmpLines2) {
+							if (!tmpLine2.contains("http")){
+								continue;
+							}
+							if (!tmpLine2.toLowerCase().contains("dlive.io/")) {
+								continue;
+							}
+							tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+							tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+							if (tmpLine2.length()>tmpUrl.length()) {
+								tmpUrl = tmpLine2;
+							}
+						}
+					}
+					
+					if (!tmpUrl.trim().isEmpty()) {
 						entry.setCustomUrlName("DLive");
-						entry.setCustomUrl(body.replaceAll(URL_PATTERN_DLIVE, "$1"));
+						entry.setCustomUrl(tmpUrl);
+						break dlive;
 					}
 				}
 			}
@@ -184,6 +226,9 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 					if (!tmpLine.toLowerCase().contains("<a")){
 						continue;
 					}
+					if (!tmpLine.toLowerCase().contains("dporn.co/")) {
+						continue;
+					}
 					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
 					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
 					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
@@ -193,6 +238,26 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 						tmpUrl = tmpLine;
 					}
 				}
+				//Markdown ( style links
+				for (String tmpLine: tmpLines) {
+					if (!tmpLine.contains("(")){
+						continue;
+					}
+					String[] tmpLines2 = tmpLine.split("\\(");
+					for (String tmpLine2: tmpLines2) {
+						if (!tmpLine2.contains("http")){
+							continue;
+						}
+						if (!tmpLine2.toLowerCase().contains("dporn.co/")) {
+							continue;
+						}
+						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+						if (tmpLine2.length()>tmpUrl.length()) {
+							tmpUrl = tmpLine2;
+						}
+					}
+				}
 				if (!tmpUrl.trim().isEmpty()) {
 					entry.setCustomUrlName("DPORN");
 					entry.setCustomUrl(tmpUrl);
@@ -200,11 +265,51 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				}
 				break dporn;
 			}
-			if (body.contains("d.tube/") && discussion.getJsonMetadata().contains("videohash")) {
-				if (body.matches(URL_PATTERN_DTUBE)) {
+			dtube: if (body.contains("d.tube/") && discussion.getJsonMetadata().contains("videohash")) {
+				String tmpBody = body.replace(">", ">\n").replace("<", "\n<");
+				tmpBody = tmpBody.replaceAll("\n\n+", "\n").trim()+"\n";
+				String[] tmpLines = tmpBody.split("\n");
+				String tmpUrl = "";
+				for (String tmpLine: tmpLines) {
+					if (!tmpLine.toLowerCase().contains("<a")){
+						continue;
+					}
+					if (!tmpLine.toLowerCase().contains("d.tube/")) {
+						continue;
+					}
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?href([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^[\\s\\S]*?=([\\s\\S]+)$", "$1");
+					tmpLine = tmpLine.replaceFirst("^([\\s\\S]*)>[\\s\\S]*$", "$1");
+					tmpLine = tmpLine.replaceAll("^([^\\s]*)[\\s\\S]*$", "$1").trim();
+					tmpLine = tmpLine.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+					if (tmpLine.length()>tmpUrl.length()) {
+						tmpUrl = tmpLine;
+					}
+				}
+				//Markdown ( style links
+				for (String tmpLine: tmpLines) {
+					if (!tmpLine.contains("(")){
+						continue;
+					}
+					String[] tmpLines2 = tmpLine.split("\\(");
+					for (String tmpLine2: tmpLines2) {
+						if (!tmpLine2.contains("http")){
+							continue;
+						}
+						if (!tmpLine2.toLowerCase().contains("d.tube/")) {
+							continue;
+						}
+						tmpLine2 = tmpLine2.replaceFirst("^([\\s\\S]*?)\\).*$", "$1");
+						tmpLine2 = tmpLine2.replaceAll("^[\"' ]?([\\s\\S]+?)[\"' ]?$","$1");
+						if (tmpLine2.length()>tmpUrl.length()) {
+							tmpUrl = tmpLine2;
+						}
+					}
+				}
+				if (!tmpUrl.trim().isEmpty()) {
 					entry.setCustomUrlName("DTUBE");
-					String tmp = body;
-					entry.setCustomUrl(tmp.replaceAll(URL_PATTERN_DTUBE, "$1"));
+					entry.setCustomUrl(tmpUrl);
+					break dtube;
 				}
 			}
 			entries.add(entry);
