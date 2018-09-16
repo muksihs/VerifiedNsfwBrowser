@@ -571,7 +571,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 				indexBlogs(iList);
 			}
 		};
-		int limit = 50;
+		int limit = 15;
 		if (Util.isSdm()) {
 			limit = 5;
 		}
