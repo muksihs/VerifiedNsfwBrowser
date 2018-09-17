@@ -534,6 +534,7 @@ public class VerifiedNsfwBlogData implements GlobalAsyncEventBus {
 		}
 		long lowestEntryId = getLowestEntryIdByAuthor(username);
 		if (lowestEntryId==1 || lowestEntryId == Long.MAX_VALUE) {
+			index.setIndexingComplete(username, true);
 			additionalIndexBlogs(iList);
 			return;
 		}
